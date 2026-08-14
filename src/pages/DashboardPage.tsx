@@ -1,44 +1,60 @@
-import { LogOut, Stethoscope } from 'lucide-react'
-import { toast } from 'sonner'
-import { Button } from '@/components/ui/button'
+import { Link } from 'react-router-dom'
+import { ClipboardList, FileText, Stethoscope, Users } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useAuth } from '@/features/auth/AuthContext'
 
-export default function DashboardPage() {
-  const { user, logout } = useAuth()
+const SECTIONS = [
+  {
+    to: '/profesionales',
+    title: 'Profesionales',
+    description: 'Administra el equipo clínico de tu clínica.',
+    icon: Stethoscope,
+  },
+  {
+    to: '/pacientes',
+    title: 'Pacientes',
+    description: 'Gestiona fichas de pacientes y sus diagnósticos.',
+    icon: Users,
+  },
+  {
+    to: '/tratamientos',
+    title: 'Tratamientos',
+    description: 'Catálogo de tratamientos y atenciones diferenciales.',
+    icon: ClipboardList,
+  },
+  {
+    to: '/presupuestos',
+    title: 'Presupuestos',
+    description: 'Genera y revisa presupuestos de tratamientos.',
+    icon: FileText,
+  },
+]
 
-  async function handleLogout() {
-    await logout()
-    toast.success('Sesión cerrada.')
-  }
+export default function DashboardPage() {
+  const { user } = useAuth()
 
   return (
-    <div className="min-h-svh bg-muted/40">
-      <header className="flex items-center justify-between border-b bg-background px-6 py-4">
-        <div className="flex items-center gap-2">
-          <Stethoscope className="size-6 text-primary" strokeWidth={1.75} />
-          <span className="font-semibold">Portal Clínica Dental</span>
-        </div>
-        <div className="flex items-center gap-3">
-          <span className="text-sm text-muted-foreground">{user?.name}</span>
-          <Button variant="outline" size="sm" onClick={handleLogout}>
-            <LogOut className="size-4" />
-            Cerrar sesión
-          </Button>
-        </div>
-      </header>
+    <div className="flex flex-col gap-6">
+      <div>
+        <h1 className="text-xl font-semibold tracking-tight">Bienvenido/a, {user?.name}</h1>
+        <p className="text-sm text-muted-foreground">Elige un módulo para comenzar a trabajar.</p>
+      </div>
 
-      <main className="p-6">
-        <Card className="mx-auto max-w-md">
-          <CardHeader>
-            <CardTitle>Bienvenido/a, {user?.name}</CardTitle>
-          </CardHeader>
-          <CardContent className="text-sm text-muted-foreground">
-            Sesión de staff activa. Los próximos módulos (profesionales,
-            pacientes, agenda) se construyen a partir de esta base.
-          </CardContent>
-        </Card>
-      </main>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {SECTIONS.map(({ to, title, description, icon: Icon }) => (
+          <Link key={to} to={to}>
+            <Card className="h-full transition-shadow hover:shadow-md">
+              <CardHeader>
+                <span className="flex size-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                  <Icon className="size-5" strokeWidth={1.75} />
+                </span>
+                <CardTitle className="pt-2">{title}</CardTitle>
+              </CardHeader>
+              <CardContent className="text-sm text-muted-foreground">{description}</CardContent>
+            </Card>
+          </Link>
+        ))}
+      </div>
     </div>
   )
 }
