@@ -1,8 +1,10 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Navigate, Routes, Route } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { Toaster } from '@/components/ui/sonner'
-import { Stethoscope } from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { AuthProvider } from '@/features/auth/AuthContext'
+import { ProtectedRoute } from '@/features/auth/ProtectedRoute'
+import LoginPage from '@/pages/LoginPage'
+import DashboardPage from '@/pages/DashboardPage'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -13,30 +15,24 @@ const queryClient = new QueryClient({
   },
 })
 
-function SetupStatus() {
-  return (
-    <div className="flex min-h-svh items-center justify-center bg-muted/40 p-6">
-      <Card className="w-full max-w-md">
-        <CardHeader className="flex flex-row items-center gap-3">
-          <Stethoscope className="size-8 text-primary" strokeWidth={1.75} />
-          <CardTitle className="text-xl">Portal Clínica Dental</CardTitle>
-        </CardHeader>
-        <CardContent className="text-sm text-muted-foreground">
-          Setup del proyecto completado. Los próximos módulos (autenticación
-          de staff, agenda, pacientes) se construyen a partir de esta base.
-        </CardContent>
-      </Card>
-    </div>
-  )
-}
-
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<SetupStatus />} />
-        </Routes>
+        <AuthProvider>
+          <Routes>
+            <Route path="/login" element={<LoginPage />} />
+            <Route
+              path="/"
+              element={
+                <ProtectedRoute>
+                  <DashboardPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </AuthProvider>
       </BrowserRouter>
       <Toaster richColors position="top-right" />
     </QueryClientProvider>
