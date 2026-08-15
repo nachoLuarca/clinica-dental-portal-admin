@@ -13,6 +13,7 @@ import PatientDetailPage from '@/features/patients/PatientDetailPage'
 import TreatmentsPage from '@/features/treatments/TreatmentsPage'
 import BudgetsPage from '@/features/budgets/BudgetsPage'
 import AppointmentsPage from '@/features/appointments/AppointmentsPage'
+import BrandingPage from '@/features/branding/BrandingPage'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -91,6 +92,14 @@ function App() {
               element={
                 <Protected>
                   <AppointmentsPage />
+                </Protected>
+              }
+            />
+            <Route
+              path="/marca"
+              element={
+                <Protected>
+                  <BrandingPage />
                 </Protected>
               }
             />
