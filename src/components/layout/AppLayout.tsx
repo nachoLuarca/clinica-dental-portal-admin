@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { NavLink } from 'react-router-dom'
-import { CalendarDays, ClipboardList, FileText, LogOut, Stethoscope, Users } from 'lucide-react'
+import { CalendarDays, ClipboardList, FileText, LogOut, Palette, Stethoscope, Users } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -12,6 +12,7 @@ const NAV_ITEMS = [
   { to: '/pacientes', label: 'Pacientes', icon: Users },
   { to: '/tratamientos', label: 'Tratamientos', icon: ClipboardList },
   { to: '/presupuestos', label: 'Presupuestos', icon: FileText },
+  { to: '/marca', label: 'Marca', icon: Palette },
 ]
 
 export function AppLayout({ children }: { children: ReactNode }) {
