@@ -12,6 +12,7 @@ import PatientsPage from '@/features/patients/PatientsPage'
 import PatientDetailPage from '@/features/patients/PatientDetailPage'
 import TreatmentsPage from '@/features/treatments/TreatmentsPage'
 import BudgetsPage from '@/features/budgets/BudgetsPage'
+import AppointmentsPage from '@/features/appointments/AppointmentsPage'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -82,6 +83,14 @@ function App() {
               element={
                 <Protected>
                   <BudgetsPage />
+                </Protected>
+              }
+            />
+            <Route
+              path="/agenda"
+              element={
+                <Protected>
+                  <AppointmentsPage />
                 </Protected>
               }
             />

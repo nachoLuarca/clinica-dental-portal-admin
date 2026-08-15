@@ -1,9 +1,15 @@
 import { Link } from 'react-router-dom'
-import { ClipboardList, FileText, Stethoscope, Users } from 'lucide-react'
+import { CalendarDays, ClipboardList, FileText, Stethoscope, Users } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useAuth } from '@/features/auth/AuthContext'
 
 const SECTIONS = [
+  {
+    to: '/agenda',
+    title: 'Agenda',
+    description: 'Revisa, agenda y cancela citas de la clínica.',
+    icon: CalendarDays,
+  },
   {
     to: '/profesionales',
     title: 'Profesionales',

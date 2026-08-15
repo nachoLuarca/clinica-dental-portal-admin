@@ -1,12 +1,13 @@
 import type { ReactNode } from 'react'
 import { NavLink } from 'react-router-dom'
-import { ClipboardList, FileText, LogOut, Stethoscope, Users } from 'lucide-react'
+import { CalendarDays, ClipboardList, FileText, LogOut, Stethoscope, Users } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/features/auth/AuthContext'
 
 const NAV_ITEMS = [
+  { to: '/agenda', label: 'Agenda', icon: CalendarDays },
   { to: '/profesionales', label: 'Profesionales', icon: Stethoscope },
   { to: '/pacientes', label: 'Pacientes', icon: Users },
   { to: '/tratamientos', label: 'Tratamientos', icon: ClipboardList },
