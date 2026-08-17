@@ -8,12 +8,12 @@ export type StaffRole = 'admin' | 'profesional' | 'recepcion'
 /**
  * Tipos del dominio de autenticación de staff.
  *
- * `roles` es opcional: al momento de escribir esto, `GET /api/staff/me` NO
- * incluye el/los rol(es) del usuario en su payload (se confirmó contra la
- * API real) aunque los permisos sí se aplican de verdad en el backend. Se
- * modela como opcional para no romper si el campo no llega, y para que el
- * día que el backend lo agregue (el shape más probable es `roles: string[]`,
- * típico de Sanctum+Spatie) el frontend lo empiece a usar sin cambios.
+ * `roles` se sigue modelando como opcional por robustez, pero desde el
+ * commit `635f538` de `clinica-dental-api` (feature de gestión de
+ * usuarios/roles editables) `GET /api/staff/me` y `POST /api/staff/login`
+ * SÍ incluyen `roles: string[]` en su payload (confirmado contra la API
+ * real). El frontend ya lo usa de forma proactiva vía `isAdmin` en
+ * `AuthContext`.
  */
 export interface StaffUser {
   id: number
