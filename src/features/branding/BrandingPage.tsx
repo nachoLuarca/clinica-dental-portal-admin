@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Skeleton } from '@/components/ui/skeleton'
+import { PageHeader } from '@/components/shared/PageHeader'
 import { getApiErrorMessage } from '@/lib/api-error'
 import { useTenantBrandingInfo } from './hooks'
 
@@ -26,14 +27,14 @@ export default function BrandingPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div>
-        <h1 className="text-xl font-semibold tracking-tight">Marca de la clínica</h1>
-        <p className="text-sm text-muted-foreground">
-          Logo, nombre y color de la clínica que ven pacientes y staff en el portal.
-        </p>
-      </div>
+      <PageHeader
+        icon={Palette}
+        title="Marca de la clínica"
+        description="Logo, nombre y color de la clínica que ven pacientes y staff en el portal."
+        accent="rose"
+      />
 
-      <div className="flex items-start gap-3 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-200">
+      <div className="flex items-start gap-3 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900 duration-300 animate-in fade-in fill-mode-both dark:border-amber-900 dark:bg-amber-950 dark:text-amber-200">
         <AlertTriangle className="mt-0.5 size-4 shrink-0" />
         <div>
           <p className="font-medium">Esta pantalla está bloqueada por el backend.</p>
@@ -45,7 +46,7 @@ export default function BrandingPage() {
         </div>
       </div>
 
-      <Card>
+      <Card className="duration-300 animate-in fade-in slide-in-from-bottom-1 fill-mode-both">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Building2 className="size-4" />
@@ -71,7 +72,7 @@ export default function BrandingPage() {
         </CardContent>
       </Card>
 
-      <Card className="opacity-75">
+      <Card className="opacity-75 duration-300 animate-in fade-in slide-in-from-bottom-1 fill-mode-both delay-75">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Palette className="size-4" />

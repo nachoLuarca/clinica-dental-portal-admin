@@ -3,9 +3,11 @@ import { ClipboardList, Pencil, Plus, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Skeleton } from '@/components/ui/skeleton'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { ConfirmDeleteDialog } from '@/components/shared/ConfirmDeleteDialog'
+import { PageHeader } from '@/components/shared/PageHeader'
+import { EmptyState } from '@/components/shared/EmptyState'
+import { TableSkeleton } from '@/components/shared/TableSkeleton'
 import { getApiErrorMessage } from '@/lib/api-error'
 import { useDeleteTreatment, useTreatments } from './hooks'
 import { TreatmentFormDialog } from './TreatmentFormDialog'
@@ -44,26 +46,20 @@ export default function TreatmentsPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-xl font-semibold tracking-tight">Tratamientos</h1>
-          <p className="text-sm text-muted-foreground">
-            Catálogo de tratamientos y atenciones diferenciales de la clínica.
-          </p>
-        </div>
-        <Button onClick={openCreate}>
-          <Plus className="size-4" />
-          Nuevo tratamiento
-        </Button>
-      </div>
+      <PageHeader
+        icon={ClipboardList}
+        title="Tratamientos"
+        description="Catálogo de tratamientos y atenciones diferenciales de la clínica."
+        accent="violet"
+        action={
+          <Button onClick={openCreate}>
+            <Plus className="size-4" />
+            Nuevo tratamiento
+          </Button>
+        }
+      />
 
-      {isLoading && (
-        <div className="flex flex-col gap-2">
-          <Skeleton className="h-10 w-full" />
-          <Skeleton className="h-10 w-full" />
-          <Skeleton className="h-10 w-full" />
-        </div>
-      )}
+      {isLoading && <TableSkeleton />}
 
       {isError && (
         <p className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
@@ -72,14 +68,11 @@ export default function TreatmentsPage() {
       )}
 
       {!isLoading && !isError && treatments && treatments.length === 0 && (
-        <div className="flex flex-col items-center gap-2 rounded-lg border border-dashed py-12 text-center text-muted-foreground">
-          <ClipboardList className="size-8" strokeWidth={1.5} />
-          <p>Aún no hay tratamientos registrados.</p>
-        </div>
+        <EmptyState icon={ClipboardList} message="Aún no hay tratamientos registrados." />
       )}
 
       {!isLoading && !isError && treatments && treatments.length > 0 && (
-        <div className="rounded-lg border">
+        <div className="rounded-lg border duration-300 animate-in fade-in fill-mode-both">
           <Table>
             <TableHeader>
               <TableRow>
@@ -92,8 +85,12 @@ export default function TreatmentsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {treatments.map((treatment) => (
-                <TableRow key={treatment.id}>
+              {treatments.map((treatment, index) => (
+                <TableRow
+                  key={treatment.id}
+                  className="duration-300 animate-in fade-in fill-mode-both"
+                  style={{ animationDelay: `${Math.min(index, 10) * 30}ms` }}
+                >
                   <TableCell className="font-medium">{treatment.nombre}</TableCell>
                   <TableCell>{clpFormatter.format(Number(treatment.precio))}</TableCell>
                   <TableCell>{treatment.duracion_minutos ? `${treatment.duracion_minutos} min` : '—'}</TableCell>
