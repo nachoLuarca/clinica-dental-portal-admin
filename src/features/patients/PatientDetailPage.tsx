@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ConfirmDeleteDialog } from '@/components/shared/ConfirmDeleteDialog'
+import { EmptyState } from '@/components/shared/EmptyState'
 import { getApiErrorMessage } from '@/lib/api-error'
 import { useDeleteDiagnosis, usePatient } from './hooks'
 import { DiagnosisFormDialog } from './DiagnosisFormDialog'
@@ -74,7 +75,7 @@ export default function PatientDetailPage() {
 
       {patient && (
         <>
-          <Card>
+          <Card className="duration-300 animate-in fade-in slide-in-from-bottom-1 fill-mode-both">
             <CardHeader className="flex flex-row items-start justify-between gap-3">
               <div>
                 <CardTitle className="text-xl">{patient.nombre}</CardTitle>
@@ -110,15 +111,16 @@ export default function PatientDetailPage() {
           </div>
 
           {(!patient.diagnoses || patient.diagnoses.length === 0) && (
-            <div className="flex flex-col items-center gap-2 rounded-lg border border-dashed py-10 text-center text-muted-foreground">
-              <Stethoscope className="size-8" strokeWidth={1.5} />
-              <p>Este paciente aún no tiene diagnósticos registrados.</p>
-            </div>
+            <EmptyState icon={Stethoscope} message="Este paciente aún no tiene diagnósticos registrados." />
           )}
 
           <div className="flex flex-col gap-3">
-            {patient.diagnoses?.map((diagnosis) => (
-              <Card key={diagnosis.id}>
+            {patient.diagnoses?.map((diagnosis, index) => (
+              <Card
+                key={diagnosis.id}
+                className="duration-300 animate-in fade-in slide-in-from-bottom-1 fill-mode-both"
+                style={{ animationDelay: `${Math.min(index, 10) * 40}ms` }}
+              >
                 <CardContent className="flex flex-col gap-2 pt-6">
                   <div className="flex items-start justify-between gap-3">
                     <div>

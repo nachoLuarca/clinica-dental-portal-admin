@@ -4,9 +4,11 @@ import { AlertCircle, CloudUpload, Pencil, Plus, RefreshCw, Trash2, Users } from
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Skeleton } from '@/components/ui/skeleton'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { ConfirmDeleteDialog } from '@/components/shared/ConfirmDeleteDialog'
+import { PageHeader } from '@/components/shared/PageHeader'
+import { EmptyState } from '@/components/shared/EmptyState'
+import { TableSkeleton } from '@/components/shared/TableSkeleton'
 import { getApiErrorMessage } from '@/lib/api-error'
 import { useOnlineStatus } from '@/lib/use-online-status'
 import { useDeletePatient, usePatients, usePendingPatients, useRemovePendingPatient, useSyncPendingPatients } from './hooks'
@@ -50,19 +52,21 @@ export default function PatientsPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-xl font-semibold tracking-tight">Pacientes</h1>
-          <p className="text-sm text-muted-foreground">Gestiona la ficha y el diagnóstico de tus pacientes.</p>
-        </div>
-        <Button onClick={openCreate}>
-          <Plus className="size-4" />
-          Nuevo paciente
-        </Button>
-      </div>
+      <PageHeader
+        icon={Users}
+        title="Pacientes"
+        description="Gestiona la ficha y el diagnóstico de tus pacientes."
+        accent="emerald"
+        action={
+          <Button onClick={openCreate}>
+            <Plus className="size-4" />
+            Nuevo paciente
+          </Button>
+        }
+      />
 
       {pendingPatients.length > 0 && (
-        <div className="flex flex-col gap-2 rounded-lg border border-dashed border-amber-500/50 bg-amber-500/5 p-3">
+        <div className="flex flex-col gap-2 rounded-lg border border-dashed border-amber-500/50 bg-amber-500/5 p-3 duration-300 animate-in fade-in fill-mode-both">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="flex items-center gap-2 text-sm text-amber-700 dark:text-amber-400">
               <CloudUpload className="size-4 shrink-0" />
@@ -126,13 +130,7 @@ export default function PatientsPage() {
         </div>
       )}
 
-      {isLoading && (
-        <div className="flex flex-col gap-2">
-          <Skeleton className="h-10 w-full" />
-          <Skeleton className="h-10 w-full" />
-          <Skeleton className="h-10 w-full" />
-        </div>
-      )}
+      {isLoading && <TableSkeleton />}
 
       {isError && (
         <p className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
@@ -141,14 +139,11 @@ export default function PatientsPage() {
       )}
 
       {!isLoading && !isError && patients && patients.length === 0 && (
-        <div className="flex flex-col items-center gap-2 rounded-lg border border-dashed py-12 text-center text-muted-foreground">
-          <Users className="size-8" strokeWidth={1.5} />
-          <p>Aún no hay pacientes registrados.</p>
-        </div>
+        <EmptyState icon={Users} message="Aún no hay pacientes registrados." />
       )}
 
       {!isLoading && !isError && patients && patients.length > 0 && (
-        <div className="rounded-lg border">
+        <div className="rounded-lg border duration-300 animate-in fade-in fill-mode-both">
           <Table>
             <TableHeader>
               <TableRow>
@@ -160,8 +155,12 @@ export default function PatientsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {patients.map((patient) => (
-                <TableRow key={patient.id}>
+              {patients.map((patient, index) => (
+                <TableRow
+                  key={patient.id}
+                  className="duration-300 animate-in fade-in fill-mode-both"
+                  style={{ animationDelay: `${Math.min(index, 10) * 30}ms` }}
+                >
                   <TableCell className="font-medium">
                     <Link to={`/pacientes/${patient.id}`} className="hover:underline">
                       {patient.nombre}

@@ -1,8 +1,9 @@
 import type { ReactNode } from 'react'
-import { NavLink } from 'react-router-dom'
+import { NavLink, useLocation } from 'react-router-dom'
 import { CalendarDays, ClipboardList, FileText, LogOut, Palette, Stethoscope, Users } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
+import { BrandMark } from '@/components/shared/BrandMark'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/features/auth/AuthContext'
 
@@ -17,6 +18,7 @@ const NAV_ITEMS = [
 
 export function AppLayout({ children }: { children: ReactNode }) {
   const { user, logout } = useAuth()
+  const location = useLocation()
 
   async function handleLogout() {
     await logout()
@@ -25,11 +27,11 @@ export function AppLayout({ children }: { children: ReactNode }) {
 
   return (
     <div className="min-h-svh bg-muted/40">
-      <header className="border-b bg-background">
+      <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
         <div className="flex items-center justify-between px-4 py-3 sm:px-6">
           <div className="flex items-center gap-2">
-            <span className="flex size-9 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-              <Stethoscope className="size-5" strokeWidth={1.75} />
+            <span className="flex size-9 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm transition-transform hover:scale-105">
+              <BrandMark className="size-5" />
             </span>
             <span className="font-semibold tracking-tight">Portal Clínica Dental</span>
           </div>
@@ -49,21 +51,28 @@ export function AppLayout({ children }: { children: ReactNode }) {
               to={to}
               className={({ isActive }) =>
                 cn(
-                  'flex shrink-0 items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
+                  'group relative flex shrink-0 items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors duration-200',
                   isActive
                     ? 'bg-primary text-primary-foreground'
                     : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground',
                 )
               }
             >
-              <Icon className="size-4" />
+              <Icon className="size-4 transition-transform duration-200 group-hover:scale-110" />
               {label}
             </NavLink>
           ))}
         </nav>
       </header>
 
-      <main className="mx-auto max-w-6xl p-4 sm:p-6">{children}</main>
+      <main className="mx-auto max-w-6xl p-4 sm:p-6">
+        <div
+          key={location.pathname}
+          className="duration-300 animate-in fade-in slide-in-from-bottom-1 fill-mode-both"
+        >
+          {children}
+        </div>
+      </main>
     </div>
   )
 }

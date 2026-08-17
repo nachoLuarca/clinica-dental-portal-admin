@@ -1,12 +1,14 @@
 import { useMemo, useState } from 'react'
-import { CalendarX2, Loader2, Plus, WifiOff, XCircle } from 'lucide-react'
+import { CalendarDays, CalendarX2, Loader2, Plus, WifiOff, XCircle } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
-import { Skeleton } from '@/components/ui/skeleton'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { PageHeader } from '@/components/shared/PageHeader'
+import { EmptyState } from '@/components/shared/EmptyState'
+import { TableSkeleton } from '@/components/shared/TableSkeleton'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -87,19 +89,21 @@ export default function AppointmentsPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-xl font-semibold tracking-tight">Agenda</h1>
-          <p className="text-sm text-muted-foreground">Citas agendadas para los pacientes de la clínica.</p>
-        </div>
-        <Button onClick={() => setFormOpen(true)} disabled={!isOnline}>
-          <Plus className="size-4" />
-          Nueva cita
-        </Button>
-      </div>
+      <PageHeader
+        icon={CalendarDays}
+        title="Agenda"
+        description="Citas agendadas para los pacientes de la clínica."
+        accent="cyan"
+        action={
+          <Button onClick={() => setFormOpen(true)} disabled={!isOnline}>
+            <Plus className="size-4" />
+            Nueva cita
+          </Button>
+        }
+      />
 
       {!isOnline && (
-        <div className="flex items-center gap-2 rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
+        <div className="flex items-center gap-2 rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive duration-300 animate-in fade-in fill-mode-both">
           <WifiOff className="size-4 shrink-0" />
           Estás sin conexión. Agendar y cancelar citas está bloqueado porque requieren validar el horario en tiempo
           real contra la clínica; los datos que ves pueden estar desactualizados.
@@ -167,13 +171,7 @@ export default function AppointmentsPage() {
         )}
       </div>
 
-      {isLoading && (
-        <div className="flex flex-col gap-2">
-          <Skeleton className="h-10 w-full" />
-          <Skeleton className="h-10 w-full" />
-          <Skeleton className="h-10 w-full" />
-        </div>
-      )}
+      {isLoading && <TableSkeleton />}
 
       {isError && (
         <p className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
@@ -182,14 +180,11 @@ export default function AppointmentsPage() {
       )}
 
       {!isLoading && !isError && filtered.length === 0 && (
-        <div className="flex flex-col items-center gap-2 rounded-lg border border-dashed py-12 text-center text-muted-foreground">
-          <CalendarX2 className="size-8" strokeWidth={1.5} />
-          <p>No hay citas que coincidan con los filtros.</p>
-        </div>
+        <EmptyState icon={CalendarX2} message="No hay citas que coincidan con los filtros." />
       )}
 
       {!isLoading && !isError && filtered.length > 0 && (
-        <div className="rounded-lg border">
+        <div className="rounded-lg border duration-300 animate-in fade-in fill-mode-both">
           <Table>
             <TableHeader>
               <TableRow>
@@ -202,8 +197,12 @@ export default function AppointmentsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filtered.map((appointment) => (
-                <TableRow key={appointment.id}>
+              {filtered.map((appointment, index) => (
+                <TableRow
+                  key={appointment.id}
+                  className="duration-300 animate-in fade-in fill-mode-both"
+                  style={{ animationDelay: `${Math.min(index, 10) * 30}ms` }}
+                >
                   <TableCell className="font-medium">{patientLabel(appointment)}</TableCell>
                   <TableCell>{professionalLabel(appointment)}</TableCell>
                   <TableCell>{appointment.treatment?.nombre ?? `Tratamiento #${appointment.treatment_id}`}</TableCell>

@@ -3,9 +3,11 @@ import { Pencil, Plus, Stethoscope, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Skeleton } from '@/components/ui/skeleton'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { ConfirmDeleteDialog } from '@/components/shared/ConfirmDeleteDialog'
+import { PageHeader } from '@/components/shared/PageHeader'
+import { EmptyState } from '@/components/shared/EmptyState'
+import { TableSkeleton } from '@/components/shared/TableSkeleton'
 import { getApiErrorMessage } from '@/lib/api-error'
 import { useDeleteProfessional, useProfessionals } from './hooks'
 import { ProfessionalFormDialog } from './ProfessionalFormDialog'
@@ -42,24 +44,20 @@ export default function ProfessionalsPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-xl font-semibold tracking-tight">Profesionales</h1>
-          <p className="text-sm text-muted-foreground">Gestiona el equipo clínico de tu clínica.</p>
-        </div>
-        <Button onClick={openCreate}>
-          <Plus className="size-4" />
-          Nuevo profesional
-        </Button>
-      </div>
+      <PageHeader
+        icon={Stethoscope}
+        title="Profesionales"
+        description="Gestiona el equipo clínico de tu clínica."
+        accent="blue"
+        action={
+          <Button onClick={openCreate}>
+            <Plus className="size-4" />
+            Nuevo profesional
+          </Button>
+        }
+      />
 
-      {isLoading && (
-        <div className="flex flex-col gap-2">
-          <Skeleton className="h-10 w-full" />
-          <Skeleton className="h-10 w-full" />
-          <Skeleton className="h-10 w-full" />
-        </div>
-      )}
+      {isLoading && <TableSkeleton />}
 
       {isError && (
         <p className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
@@ -68,14 +66,11 @@ export default function ProfessionalsPage() {
       )}
 
       {!isLoading && !isError && professionals && professionals.length === 0 && (
-        <div className="flex flex-col items-center gap-2 rounded-lg border border-dashed py-12 text-center text-muted-foreground">
-          <Stethoscope className="size-8" strokeWidth={1.5} />
-          <p>Aún no hay profesionales registrados.</p>
-        </div>
+        <EmptyState icon={Stethoscope} message="Aún no hay profesionales registrados." />
       )}
 
       {!isLoading && !isError && professionals && professionals.length > 0 && (
-        <div className="rounded-lg border">
+        <div className="rounded-lg border duration-300 animate-in fade-in fill-mode-both">
           <Table>
             <TableHeader>
               <TableRow>
@@ -87,8 +82,12 @@ export default function ProfessionalsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {professionals.map((professional) => (
-                <TableRow key={professional.id}>
+              {professionals.map((professional, index) => (
+                <TableRow
+                  key={professional.id}
+                  className="duration-300 animate-in fade-in fill-mode-both"
+                  style={{ animationDelay: `${Math.min(index, 10) * 30}ms` }}
+                >
                   <TableCell className="font-medium">
                     {professional.nombre} {professional.apellido}
                   </TableCell>
