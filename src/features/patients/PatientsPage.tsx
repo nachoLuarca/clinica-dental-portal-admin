@@ -1,13 +1,15 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Pencil, Plus, Trash2, Users } from 'lucide-react'
+import { AlertCircle, CloudUpload, Pencil, Plus, RefreshCw, Trash2, Users } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { ConfirmDeleteDialog } from '@/components/shared/ConfirmDeleteDialog'
 import { getApiErrorMessage } from '@/lib/api-error'
-import { useDeletePatient, usePatients } from './hooks'
+import { useOnlineStatus } from '@/lib/use-online-status'
+import { useDeletePatient, usePatients, usePendingPatients, useRemovePendingPatient, useSyncPendingPatients } from './hooks'
 import { PatientFormDialog } from './PatientFormDialog'
 import type { Patient } from './types'
 
@@ -16,6 +18,10 @@ const dateFormatter = new Intl.DateTimeFormat('es-CL', { dateStyle: 'medium' })
 export default function PatientsPage() {
   const { data: patients, isLoading, isError, error } = usePatients()
   const deleteMutation = useDeletePatient()
+  const pendingPatients = usePendingPatients()
+  const isOnline = useOnlineStatus()
+  const syncPending = useSyncPendingPatients()
+  const removePending = useRemovePendingPatient()
 
   const [formOpen, setFormOpen] = useState(false)
   const [editing, setEditing] = useState<Patient | null>(null)
@@ -54,6 +60,71 @@ export default function PatientsPage() {
           Nuevo paciente
         </Button>
       </div>
+
+      {pendingPatients.length > 0 && (
+        <div className="flex flex-col gap-2 rounded-lg border border-dashed border-amber-500/50 bg-amber-500/5 p-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="flex items-center gap-2 text-sm text-amber-700 dark:text-amber-400">
+              <CloudUpload className="size-4 shrink-0" />
+              {pendingPatients.length === 1
+                ? '1 registro pendiente de sincronizar.'
+                : `${pendingPatients.length} registros pendientes de sincronizar.`}
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={!isOnline}
+              title={!isOnline ? 'Sin conexión: no se puede sincronizar todavía.' : undefined}
+              onClick={() => syncPending()}
+            >
+              <RefreshCw className="size-4" />
+              Sincronizar ahora
+            </Button>
+          </div>
+
+          <div className="flex flex-col divide-y">
+            {pendingPatients.map((item) => (
+              <div key={item.id} className="flex flex-wrap items-center justify-between gap-2 py-2 text-sm">
+                <div>
+                  <p className="font-medium">{item.patientPayload.nombre}</p>
+                  <p className="text-xs text-muted-foreground">{item.patientPayload.email}</p>
+                  {item.diagnosisPayload && (
+                    <p className="text-xs text-muted-foreground">Incluye diagnóstico inicial</p>
+                  )}
+                  {item.status === 'error' && item.errorMessage && (
+                    <p className="mt-1 flex items-center gap-1 text-xs text-destructive">
+                      <AlertCircle className="size-3 shrink-0" />
+                      {item.errorMessage}
+                    </p>
+                  )}
+                </div>
+                <div className="flex items-center gap-2">
+                  <Badge variant={item.status === 'error' ? 'destructive' : 'outline'}>
+                    {item.status === 'syncing'
+                      ? 'Sincronizando…'
+                      : item.status === 'error'
+                        ? 'Error al sincronizar'
+                        : 'Pendiente de sincronizar'}
+                  </Badge>
+                  {item.status === 'error' && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon-sm"
+                      onClick={() => removePending(item.id)}
+                      title="Descartar registro pendiente"
+                    >
+                      <Trash2 className="size-4 text-destructive" />
+                      <span className="sr-only">Descartar</span>
+                    </Button>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {isLoading && (
         <div className="flex flex-col gap-2">
