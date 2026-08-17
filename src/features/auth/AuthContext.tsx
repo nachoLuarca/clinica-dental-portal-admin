@@ -13,11 +13,9 @@ interface AuthContextValue {
   login: (payload: StaffLoginPayload) => Promise<void>
   logout: () => Promise<void>
   /**
-   * Roles del usuario actual. Hoy `GET /api/staff/me` no los incluye en su
-   * respuesta (ver nota en `types.ts`), así que en la práctica esta lista
-   * queda vacía y `rolesKnown` en `false` — el frontend no puede saber de
-   * antemano qué rol tiene el usuario, solo confirmarlo cuando la API
-   * responde 403 a una acción puntual.
+   * Roles del usuario actual, informados por la API (`GET /api/staff/me` y
+   * `POST /api/staff/login` ya incluyen `roles: string[]` desde el commit
+   * `635f538` de `clinica-dental-api`).
    */
   roles: StaffRole[]
   /** true solo si la API efectivamente informó el/los rol(es) del usuario. */
@@ -25,9 +23,9 @@ interface AuthContextValue {
   hasRole: (...roles: StaffRole[]) => boolean
   /**
    * `true` si sabemos que es admin, `false` si sabemos que NO lo es, y
-   * `null` si no hay información de rol disponible (caso actual). Cuando es
-   * `null`, la UI debe optar por mostrar la acción y confiar en el 403 real
-   * de la API en vez de ocultarla a ciegas.
+   * `null` si no hay información de rol disponible (ej. mientras se resuelve
+   * la sesión). La UI debe usar `isAdmin` de forma proactiva para
+   * ocultar/proteger módulos exclusivos de admin, no solo reaccionar a 403.
    */
   isAdmin: boolean | null
 }

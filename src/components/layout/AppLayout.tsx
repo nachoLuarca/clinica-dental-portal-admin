@@ -1,6 +1,16 @@
 import type { ReactNode } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
-import { CalendarDays, ClipboardList, FileText, LogOut, Palette, Stethoscope, Users } from 'lucide-react'
+import {
+  CalendarDays,
+  ClipboardList,
+  FileText,
+  LogOut,
+  Palette,
+  ShieldCheck,
+  Stethoscope,
+  Users,
+  UserCog,
+} from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { BrandMark } from '@/components/shared/BrandMark'
@@ -16,9 +26,16 @@ const NAV_ITEMS = [
   { to: '/marca', label: 'Marca', icon: Palette },
 ]
 
+/** Solo visible para admin: gestión de usuarios y roles del staff. */
+const ADMIN_NAV_ITEMS = [
+  { to: '/usuarios', label: 'Usuarios', icon: UserCog },
+  { to: '/roles', label: 'Roles', icon: ShieldCheck },
+]
+
 export function AppLayout({ children }: { children: ReactNode }) {
-  const { user, logout } = useAuth()
+  const { user, logout, isAdmin } = useAuth()
   const location = useLocation()
+  const navItems = isAdmin ? [...NAV_ITEMS, ...ADMIN_NAV_ITEMS] : NAV_ITEMS
 
   async function handleLogout() {
     await logout()
@@ -45,7 +62,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
         </div>
 
         <nav className="flex gap-1 overflow-x-auto px-4 pb-2 sm:px-6">
-          {NAV_ITEMS.map(({ to, label, icon: Icon }) => (
+          {navItems.map(({ to, label, icon: Icon }) => (
             <NavLink
               key={to}
               to={to}

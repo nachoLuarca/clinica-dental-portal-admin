@@ -6,6 +6,7 @@ import { Toaster } from '@/components/ui/sonner'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { AuthProvider } from '@/features/auth/AuthContext'
 import { ProtectedRoute } from '@/features/auth/ProtectedRoute'
+import { AdminRoute } from '@/features/auth/AdminRoute'
 import { syncPendingPatients } from '@/features/patients/offline-queue'
 import LoginPage from '@/pages/LoginPage'
 import DashboardPage from '@/pages/DashboardPage'
@@ -16,6 +17,8 @@ import TreatmentsPage from '@/features/treatments/TreatmentsPage'
 import BudgetsPage from '@/features/budgets/BudgetsPage'
 import AppointmentsPage from '@/features/appointments/AppointmentsPage'
 import BrandingPage from '@/features/branding/BrandingPage'
+import UsersPage from '@/features/users/UsersPage'
+import RolesPage from '@/features/roles/RolesPage'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -30,6 +33,16 @@ function Protected({ children }: { children: ReactNode }) {
   return (
     <ProtectedRoute>
       <AppLayout>{children}</AppLayout>
+    </ProtectedRoute>
+  )
+}
+
+function AdminOnly({ children }: { children: ReactNode }) {
+  return (
+    <ProtectedRoute>
+      <AppLayout>
+        <AdminRoute>{children}</AdminRoute>
+      </AppLayout>
     </ProtectedRoute>
   )
 }
@@ -126,6 +139,22 @@ function App() {
                 <Protected>
                   <BrandingPage />
                 </Protected>
+              }
+            />
+            <Route
+              path="/usuarios"
+              element={
+                <AdminOnly>
+                  <UsersPage />
+                </AdminOnly>
+              }
+            />
+            <Route
+              path="/roles"
+              element={
+                <AdminOnly>
+                  <RolesPage />
+                </AdminOnly>
               }
             />
             <Route path="*" element={<Navigate to="/" replace />} />
