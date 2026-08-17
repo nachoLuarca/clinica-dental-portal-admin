@@ -1,10 +1,12 @@
 import type { ReactNode } from 'react'
+import { useEffect } from 'react'
 import { BrowserRouter, Navigate, Routes, Route } from 'react-router-dom'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { QueryClient, QueryClientProvider, useQueryClient } from '@tanstack/react-query'
 import { Toaster } from '@/components/ui/sonner'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { AuthProvider } from '@/features/auth/AuthContext'
 import { ProtectedRoute } from '@/features/auth/ProtectedRoute'
+import { syncPendingPatients } from '@/features/patients/offline-queue'
 import LoginPage from '@/pages/LoginPage'
 import DashboardPage from '@/pages/DashboardPage'
 import ProfessionalsPage from '@/features/professionals/ProfessionalsPage'
@@ -32,9 +34,32 @@ function Protected({ children }: { children: ReactNode }) {
   )
 }
 
+/**
+ * Dispara la sincronización de la cola offline de pacientes/diagnóstico al
+ * recuperar conexión, y también al montar la app si ya hay conexión (por
+ * si quedaron registros pendientes de una sesión anterior).
+ */
+function OfflineSync() {
+  const queryClient = useQueryClient()
+
+  useEffect(() => {
+    syncPendingPatients(queryClient)
+
+    function handleOnline() {
+      syncPendingPatients(queryClient)
+    }
+
+    window.addEventListener('online', handleOnline)
+    return () => window.removeEventListener('online', handleOnline)
+  }, [queryClient])
+
+  return null
+}
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
+      <OfflineSync />
       <BrowserRouter>
         <AuthProvider>
           <Routes>

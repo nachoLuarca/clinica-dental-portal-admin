@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   createDiagnosis,
@@ -10,6 +11,7 @@ import {
   updateDiagnosis,
   updatePatient,
 } from './api'
+import { getPendingPatients, removePendingPatient, subscribeToQueue, syncPendingPatients } from './offline-queue'
 import type { DiagnosisPayload, PatientPayload } from './types'
 
 const PATIENTS_KEY = ['patients'] as const
@@ -87,6 +89,41 @@ export function useUpdateDiagnosis(patientId: number) {
       queryClient.invalidateQueries({ queryKey: patientKey(patientId) })
     },
   })
+}
+
+/**
+ * Registros de pacientes+diagnóstico que quedaron encolados en IndexedDB
+ * por haberse creado sin conexión. Se refresca solo cuando la cola cambia
+ * (encolado, sincronizado o marcado con error), no por polling.
+ */
+export function usePendingPatients() {
+  const [pending, setPending] = useState<Awaited<ReturnType<typeof getPendingPatients>>>([])
+
+  useEffect(() => {
+    let active = true
+    function refresh() {
+      getPendingPatients().then((items) => {
+        if (active) setPending(items)
+      })
+    }
+    refresh()
+    const unsubscribe = subscribeToQueue(refresh)
+    return () => {
+      active = false
+      unsubscribe()
+    }
+  }, [])
+
+  return pending
+}
+
+export function useSyncPendingPatients() {
+  const queryClient = useQueryClient()
+  return () => syncPendingPatients(queryClient)
+}
+
+export function useRemovePendingPatient() {
+  return (id: string) => removePendingPatient(id)
 }
 
 export function useDeleteDiagnosis(patientId: number) {
