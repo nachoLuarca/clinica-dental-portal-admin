@@ -25,3 +25,11 @@ export function getApiErrorMessage(error: unknown, fallback = 'Ocurrió un error
 
   return fallback
 }
+
+/**
+ * true si el error es un 403 de la API (usuario autenticado pero sin permiso
+ * para la acción, vía roles/permisos de Spatie aplicados en el backend).
+ */
+export function isForbiddenError(error: unknown): boolean {
+  return isAxiosError(error) && error.response?.status === 403
+}

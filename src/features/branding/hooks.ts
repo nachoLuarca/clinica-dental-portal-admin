@@ -1,11 +1,22 @@
-import { useQuery } from '@tanstack/react-query'
-import { fetchTenantBrandingInfo } from './api'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { fetchTenant, updateTenant } from './api'
+import type { TenantUpdatePayload } from './types'
 
-const TENANT_BRANDING_KEY = ['branding', 'tenant-info'] as const
+const TENANT_KEY = ['branding', 'tenant'] as const
 
-export function useTenantBrandingInfo() {
+export function useTenant() {
   return useQuery({
-    queryKey: TENANT_BRANDING_KEY,
-    queryFn: fetchTenantBrandingInfo,
+    queryKey: TENANT_KEY,
+    queryFn: fetchTenant,
+  })
+}
+
+export function useUpdateTenant() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (payload: TenantUpdatePayload) => updateTenant(payload),
+    onSuccess: (tenant) => {
+      queryClient.setQueryData(TENANT_KEY, tenant)
+    },
   })
 }

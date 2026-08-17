@@ -1,13 +1,13 @@
 import { useState } from 'react'
 import { Navigate, useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, Pencil, Plus, Stethoscope, Trash2 } from 'lucide-react'
+import { ArrowLeft, Lock, Pencil, Plus, Stethoscope, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ConfirmDeleteDialog } from '@/components/shared/ConfirmDeleteDialog'
 import { EmptyState } from '@/components/shared/EmptyState'
-import { getApiErrorMessage } from '@/lib/api-error'
+import { getApiErrorMessage, isForbiddenError } from '@/lib/api-error'
 import { useDeleteDiagnosis, usePatient } from './hooks'
 import { DiagnosisFormDialog } from './DiagnosisFormDialog'
 import { PatientFormDialog } from './PatientFormDialog'
@@ -27,6 +27,10 @@ export default function PatientDetailPage() {
   const [diagnosisFormOpen, setDiagnosisFormOpen] = useState(false)
   const [editingDiagnosis, setEditingDiagnosis] = useState<Diagnosis | null>(null)
   const [deletingDiagnosis, setDeletingDiagnosis] = useState<Diagnosis | null>(null)
+  // Se confirma con un 403 real (rol sin permiso de diagnósticos, ej.
+  // recepción): a partir de ahí se dejan de ofrecer las acciones por el
+  // resto de la sesión, en vez de asumir el rol de antemano.
+  const [diagnosesForbidden, setDiagnosesForbidden] = useState(false)
 
   function openCreateDiagnosis() {
     setEditingDiagnosis(null)
@@ -45,6 +49,7 @@ export default function PatientDetailPage() {
       toast.success('Diagnóstico eliminado.')
       setDeletingDiagnosis(null)
     } catch (err) {
+      if (isForbiddenError(err)) setDiagnosesForbidden(true)
       toast.error(getApiErrorMessage(err, 'No se pudo eliminar el diagnóstico.'))
     }
   }
@@ -104,11 +109,20 @@ export default function PatientDetailPage() {
 
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold tracking-tight">Diagnósticos</h2>
-            <Button size="sm" onClick={openCreateDiagnosis}>
-              <Plus className="size-4" />
-              Nuevo diagnóstico
-            </Button>
+            {!diagnosesForbidden && (
+              <Button size="sm" onClick={openCreateDiagnosis}>
+                <Plus className="size-4" />
+                Nuevo diagnóstico
+              </Button>
+            )}
           </div>
+
+          {diagnosesForbidden && (
+            <div className="flex items-center gap-2 rounded-md border border-muted bg-muted/50 px-3 py-2 text-sm text-muted-foreground duration-300 animate-in fade-in fill-mode-both">
+              <Lock className="size-4 shrink-0" />
+              Tu usuario no tiene permisos para gestionar diagnósticos.
+            </div>
+          )}
 
           {(!patient.diagnoses || patient.diagnoses.length === 0) && (
             <EmptyState icon={Stethoscope} message="Este paciente aún no tiene diagnósticos registrados." />
@@ -127,16 +141,18 @@ export default function PatientDetailPage() {
                       <p className="text-sm text-muted-foreground">{dateFormatter.format(new Date(diagnosis.fecha))}</p>
                       <p className="font-medium">{diagnosis.descripcion}</p>
                     </div>
-                    <div className="flex gap-1">
-                      <Button variant="ghost" size="icon-sm" onClick={() => openEditDiagnosis(diagnosis)}>
-                        <Pencil className="size-4" />
-                        <span className="sr-only">Editar</span>
-                      </Button>
-                      <Button variant="ghost" size="icon-sm" onClick={() => setDeletingDiagnosis(diagnosis)}>
-                        <Trash2 className="size-4 text-destructive" />
-                        <span className="sr-only">Eliminar</span>
-                      </Button>
-                    </div>
+                    {!diagnosesForbidden && (
+                      <div className="flex gap-1">
+                        <Button variant="ghost" size="icon-sm" onClick={() => openEditDiagnosis(diagnosis)}>
+                          <Pencil className="size-4" />
+                          <span className="sr-only">Editar</span>
+                        </Button>
+                        <Button variant="ghost" size="icon-sm" onClick={() => setDeletingDiagnosis(diagnosis)}>
+                          <Trash2 className="size-4 text-destructive" />
+                          <span className="sr-only">Eliminar</span>
+                        </Button>
+                      </div>
+                    )}
                   </div>
                   {diagnosis.notas && <p className="text-sm text-muted-foreground">{diagnosis.notas}</p>}
                   {diagnosis.professional && (
@@ -156,6 +172,7 @@ export default function PatientDetailPage() {
             onOpenChange={setDiagnosisFormOpen}
             patientId={patientId}
             diagnosis={editingDiagnosis}
+            onForbidden={() => setDiagnosesForbidden(true)}
           />
 
           <ConfirmDeleteDialog

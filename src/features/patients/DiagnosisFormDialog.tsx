@@ -17,7 +17,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { toast } from 'sonner'
-import { getApiErrorMessage } from '@/lib/api-error'
+import { getApiErrorMessage, isForbiddenError } from '@/lib/api-error'
 import { useProfessionals } from '@/features/professionals/hooks'
 import { useCreateDiagnosis, useUpdateDiagnosis } from './hooks'
 import type { Diagnosis } from './types'
@@ -36,13 +36,19 @@ interface DiagnosisFormDialogProps {
   onOpenChange: (open: boolean) => void
   patientId: number
   diagnosis?: Diagnosis | null
+  /**
+   * Se llama cuando la API rechaza con 403 (usuario sin `diagnoses.crear` /
+   * `diagnoses.editar`, ej. rol `recepción`). El padre lo usa para dejar de
+   * ofrecer esta acción por el resto de la sesión.
+   */
+  onForbidden?: () => void
 }
 
 function toDateInputValue(isoDate: string): string {
   return isoDate.slice(0, 10)
 }
 
-export function DiagnosisFormDialog({ open, onOpenChange, patientId, diagnosis }: DiagnosisFormDialogProps) {
+export function DiagnosisFormDialog({ open, onOpenChange, patientId, diagnosis, onForbidden }: DiagnosisFormDialogProps) {
   const isEditing = !!diagnosis
   const { data: professionals } = useProfessionals()
   const createMutation = useCreateDiagnosis(patientId)
@@ -86,6 +92,7 @@ export function DiagnosisFormDialog({ open, onOpenChange, patientId, diagnosis }
       }
       onOpenChange(false)
     } catch (error) {
+      if (isForbiddenError(error)) onForbidden?.()
       toast.error(getApiErrorMessage(error, 'No se pudo guardar el diagnóstico.'))
     }
   }
