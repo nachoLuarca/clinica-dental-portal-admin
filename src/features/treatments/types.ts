@@ -1,3 +1,5 @@
+import type { Especialidad } from '@/features/especialidades/types'
+
 /**
  * Tipos del dominio de tratamientos.
  *
@@ -14,6 +16,8 @@ export interface Treatment {
   duracion_minutos: number | null
   es_diferencial: boolean
   activo: boolean
+  especialidad_id: number | null
+  especialidad: Especialidad | null
   created_at: string
   updated_at: string
 }
@@ -25,4 +29,5 @@ export interface TreatmentPayload {
   duracion_minutos?: number | null
   es_diferencial: boolean
   activo: boolean
+  especialidad_id: number | null
 }
