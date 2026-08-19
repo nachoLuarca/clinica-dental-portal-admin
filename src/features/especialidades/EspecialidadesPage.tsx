@@ -75,7 +75,7 @@ export default function EspecialidadesPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>Nombre</TableHead>
-                <TableHead>Categorías de tratamiento</TableHead>
+                <TableHead>Tratamientos</TableHead>
                 <TableHead className="w-[120px] text-right">Acciones</TableHead>
               </TableRow>
             </TableHeader>
@@ -88,13 +88,13 @@ export default function EspecialidadesPage() {
                 >
                   <TableCell className="font-medium">{especialidad.nombre}</TableCell>
                   <TableCell>
-                    {especialidad.categorias.length === 0 ? (
+                    {especialidad.treatments.length === 0 ? (
                       <span className="text-sm text-muted-foreground">—</span>
                     ) : (
                       <div className="flex flex-wrap gap-1">
-                        {especialidad.categorias.map((cat) => (
-                          <Badge key={cat.id} variant="secondary">
-                            {cat.categoria}
+                        {especialidad.treatments.map((t) => (
+                          <Badge key={t.id} variant="secondary">
+                            {t.nombre}
                           </Badge>
                         ))}
                       </div>

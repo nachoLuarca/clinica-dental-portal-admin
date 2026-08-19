@@ -24,7 +24,7 @@ import type { Especialidad } from './types'
 
 const especialidadSchema = z.object({
   nombre: z.string().trim().min(1, 'El nombre es obligatorio.'),
-  categorias: z.array(z.string()),
+  treatment_ids: z.array(z.number()),
 })
 
 type EspecialidadFormValues = z.infer<typeof especialidadSchema>
@@ -42,60 +42,63 @@ export function EspecialidadFormDialog({ open, onOpenChange, especialidad }: Esp
   const updateMutation = useUpdateEspecialidad()
   const isSubmitting = createMutation.isPending || updateMutation.isPending
 
-  const [categoriaSelect, setCategoriaSelect] = useState('')
-
-  // Categorías del catálogo de tratamientos: opciones del select. Se crean
-  // en el CRUD de tratamientos, acá solo se asignan a la especialidad.
-  const categoriaSuggestions = useMemo(() => {
-    const set = new Set<string>()
-    for (const treatment of treatments ?? []) {
-      if (treatment.categoria) set.add(treatment.categoria)
-    }
-    return Array.from(set).sort((a, b) => a.localeCompare(b))
-  }, [treatments])
+  const [treatmentSelect, setTreatmentSelect] = useState('')
 
   const form = useForm<EspecialidadFormValues>({
     resolver: zodResolver(especialidadSchema),
-    defaultValues: { nombre: '', categorias: [] },
+    defaultValues: { nombre: '', treatment_ids: [] },
   })
 
   useEffect(() => {
     if (open) {
-      setCategoriaSelect('')
+      setTreatmentSelect('')
       form.reset(
         especialidad
-          ? { nombre: especialidad.nombre, categorias: especialidad.categorias.map((c) => c.categoria) }
-          : { nombre: '', categorias: [] },
+          ? { nombre: especialidad.nombre, treatment_ids: especialidad.treatments.map((t) => t.id) }
+          : { nombre: '', treatment_ids: [] },
       )
     }
   }, [open, especialidad, form])
 
-  const categorias = form.watch('categorias')
+  const treatmentIds = form.watch('treatment_ids')
 
-  function addCategoriaValue(value: string) {
-    const trimmed = value.trim()
-    if (!trimmed) return
-    const current = form.getValues('categorias')
-    if (current.some((c) => c.toLowerCase() === trimmed.toLowerCase())) return
-    form.setValue('categorias', [...current, trimmed], { shouldDirty: true })
+  // Tratamientos que se pueden asignar: sin especialidad, o ya asignados a
+  // esta misma especialidad (un tratamiento pertenece a una sola especialidad).
+  const assignableTreatments = useMemo(
+    () =>
+      (treatments ?? []).filter(
+        (t) => t.especialidad_id === null || t.especialidad_id === especialidad?.id,
+      ),
+    [treatments, especialidad],
+  )
+
+  const treatmentsById = useMemo(() => {
+    const map = new Map<number, string>()
+    for (const t of treatments ?? []) map.set(t.id, t.nombre)
+    return map
+  }, [treatments])
+
+  function addTreatmentFromSelect() {
+    const id = Number(treatmentSelect)
+    if (!id) return
+    const current = form.getValues('treatment_ids')
+    if (!current.includes(id)) {
+      form.setValue('treatment_ids', [...current, id], { shouldDirty: true })
+    }
+    setTreatmentSelect('')
   }
 
-  function addCategoriaFromSelect() {
-    addCategoriaValue(categoriaSelect)
-    setCategoriaSelect('')
-  }
-
-  function removeCategoria(value: string) {
+  function removeTreatment(id: number) {
     form.setValue(
-      'categorias',
-      form.getValues('categorias').filter((c) => c !== value),
+      'treatment_ids',
+      form.getValues('treatment_ids').filter((t) => t !== id),
       { shouldDirty: true },
     )
   }
 
   async function onSubmit(values: EspecialidadFormValues) {
     try {
-      const payload = { nombre: values.nombre, categorias: values.categorias }
+      const payload = { nombre: values.nombre, treatment_ids: values.treatment_ids }
       if (isEditing && especialidad) {
         await updateMutation.mutateAsync({ id: especialidad.id, payload })
         toast.success('Especialidad actualizada correctamente.')
@@ -116,7 +119,7 @@ export function EspecialidadFormDialog({ open, onOpenChange, especialidad }: Esp
           <DialogTitle>{isEditing ? 'Editar especialidad' : 'Nueva especialidad'}</DialogTitle>
           <DialogDescription>
             {isEditing
-              ? 'Actualiza el nombre y las categorías de tratamiento de esta especialidad.'
+              ? 'Actualiza el nombre y los tratamientos de esta especialidad.'
               : 'Registra una especialidad del catálogo de la clínica, asignable a profesionales.'}
           </DialogDescription>
         </DialogHeader>
@@ -139,52 +142,56 @@ export function EspecialidadFormDialog({ open, onOpenChange, especialidad }: Esp
 
             <FormField
               control={form.control}
-              name="categorias"
+              name="treatment_ids"
               render={() => (
                 <FormItem>
-                  <FormLabel>Categorías de tratamiento</FormLabel>
-                  <FormDescription>Categorías de tratamiento que cubre esta especialidad.</FormDescription>
+                  <FormLabel>Tratamientos</FormLabel>
+                  <FormDescription>Tratamientos del catálogo que cubre esta especialidad.</FormDescription>
 
-                  {categoriaSuggestions.length > 0 ? (
+                  {assignableTreatments.filter((t) => !treatmentIds.includes(t.id)).length > 0 ? (
                     <div className="flex gap-2">
-                      <Select value={categoriaSelect} onValueChange={setCategoriaSelect}>
+                      <Select value={treatmentSelect} onValueChange={setTreatmentSelect}>
                         <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Elige una categoría existente" />
+                          <SelectValue placeholder="Elige un tratamiento disponible" />
                         </SelectTrigger>
                         <SelectContent>
-                          {categoriaSuggestions
-                            .filter((sugerencia) => !categorias.includes(sugerencia))
-                            .map((sugerencia) => (
-                              <SelectItem key={sugerencia} value={sugerencia}>
-                                {sugerencia}
+                          {assignableTreatments
+                            .filter((t) => !treatmentIds.includes(t.id))
+                            .map((t) => (
+                              <SelectItem key={t.id} value={String(t.id)}>
+                                {t.nombre}
                               </SelectItem>
                             ))}
                         </SelectContent>
                       </Select>
-                      <Button type="button" variant="outline" onClick={addCategoriaFromSelect} disabled={!categoriaSelect}>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={addTreatmentFromSelect}
+                        disabled={!treatmentSelect}
+                      >
                         <Plus className="size-4" />
                         Agregar
                       </Button>
                     </div>
                   ) : (
                     <p className="text-sm text-muted-foreground">
-                      Aún no hay categorías de tratamiento registradas. Se crean asignando una categoría a un
-                      tratamiento en el catálogo de Tratamientos.
+                      No hay tratamientos disponibles para asignar. Se crean en el catálogo de Tratamientos.
                     </p>
                   )}
 
-                  {categorias.length > 0 && (
+                  {treatmentIds.length > 0 && (
                     <div className="flex flex-wrap gap-2 pt-1">
-                      {categorias.map((cat) => (
-                        <Badge key={cat} variant="secondary" className="gap-1 pr-1">
-                          {cat}
+                      {treatmentIds.map((id) => (
+                        <Badge key={id} variant="secondary" className="gap-1 pr-1">
+                          {treatmentsById.get(id) ?? `#${id}`}
                           <button
                             type="button"
                             className="rounded-full p-0.5 hover:bg-muted-foreground/20"
-                            onClick={() => removeCategoria(cat)}
+                            onClick={() => removeTreatment(id)}
                           >
                             <X className="size-3" />
-                            <span className="sr-only">Quitar {cat}</span>
+                            <span className="sr-only">Quitar {treatmentsById.get(id) ?? `#${id}`}</span>
                           </button>
                         </Badge>
                       ))}

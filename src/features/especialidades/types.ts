@@ -1,21 +1,21 @@
 /**
  * Tipos del dominio de especialidades: catálogo por clínica, asignable a
- * profesionales (uno puede tener varias), mapeado a categorías de
- * tratamiento en texto libre.
+ * profesionales (uno puede tener varias) y a tratamientos (un tratamiento
+ * pertenece a una sola especialidad, o ninguna, vía Treatment::especialidad_id).
  */
-export interface EspecialidadCategoria {
+export interface EspecialidadTreatment {
   id: number
-  categoria: string
+  nombre: string
 }
 
 export interface Especialidad {
   id: number
   nombre: string
-  categorias: EspecialidadCategoria[]
+  treatments: EspecialidadTreatment[]
 }
 
 export interface EspecialidadPayload {
   nombre: string
-  /** Si se envía, reemplaza por completo las categorías asignadas. */
-  categorias?: string[]
+  /** Si se envía, reemplaza por completo el set de tratamientos asignados. */
+  treatment_ids?: number[]
 }
