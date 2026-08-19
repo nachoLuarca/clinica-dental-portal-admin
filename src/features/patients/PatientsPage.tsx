@@ -148,6 +148,7 @@ export default function PatientsPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>Nombre</TableHead>
+                <TableHead>RUT</TableHead>
                 <TableHead>Correo</TableHead>
                 <TableHead>Fecha de nacimiento</TableHead>
                 <TableHead>Teléfono</TableHead>
@@ -166,6 +167,7 @@ export default function PatientsPage() {
                       {patient.nombre}
                     </Link>
                   </TableCell>
+                  <TableCell className="text-muted-foreground">{patient.rut}</TableCell>
                   <TableCell className="text-muted-foreground">{patient.email}</TableCell>
                   <TableCell>{dateFormatter.format(new Date(patient.fecha_nacimiento))}</TableCell>
                   <TableCell>{patient.telefono ?? '—'}</TableCell>

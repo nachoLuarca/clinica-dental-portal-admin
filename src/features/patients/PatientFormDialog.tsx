@@ -27,6 +27,7 @@ import type { Patient } from './types'
 const patientSchema = z
   .object({
     nombre: z.string().trim().min(1, 'El nombre es obligatorio.'),
+    rut: z.string().trim().min(1, 'El RUT es obligatorio.'),
     email: z.string().trim().min(1, 'El correo es obligatorio.').email('Ingresa un correo válido.'),
     fecha_nacimiento: z.string().trim().min(1, 'La fecha de nacimiento es obligatoria.'),
     telefono: z.string().trim().optional(),
@@ -55,6 +56,7 @@ function toDateInputValue(isoDate: string): string {
 
 const EMPTY_VALUES: PatientFormValues = {
   nombre: '',
+  rut: '',
   email: '',
   fecha_nacimiento: '',
   telefono: '',
@@ -85,6 +87,7 @@ export function PatientFormDialog({ open, onOpenChange, patient }: PatientFormDi
           ? {
               ...EMPTY_VALUES,
               nombre: patient.nombre,
+              rut: patient.rut,
               email: patient.email,
               fecha_nacimiento: toDateInputValue(patient.fecha_nacimiento),
               telefono: patient.telefono ?? '',
@@ -98,6 +101,7 @@ export function PatientFormDialog({ open, onOpenChange, patient }: PatientFormDi
   async function onSubmit(values: PatientFormValues) {
     const payload = {
       nombre: values.nombre,
+      rut: values.rut,
       email: values.email,
       fecha_nacimiento: values.fecha_nacimiento,
       telefono: values.telefono || undefined,
@@ -166,6 +170,20 @@ export function PatientFormDialog({ open, onOpenChange, patient }: PatientFormDi
                   <FormLabel>Nombre completo</FormLabel>
                   <FormControl>
                     <Input placeholder="Pedro Paciente" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="rut"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>RUT</FormLabel>
+                  <FormControl>
+                    <Input placeholder="12.345.678-9" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
