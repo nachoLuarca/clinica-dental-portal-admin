@@ -77,7 +77,6 @@ export default function TreatmentsPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>Nombre</TableHead>
-                <TableHead>Categoría</TableHead>
                 <TableHead>Precio</TableHead>
                 <TableHead>Duración</TableHead>
                 <TableHead>Tipo</TableHead>
@@ -93,7 +92,6 @@ export default function TreatmentsPage() {
                   style={{ animationDelay: `${Math.min(index, 10) * 30}ms` }}
                 >
                   <TableCell className="font-medium">{treatment.nombre}</TableCell>
-                  <TableCell className="text-muted-foreground">{treatment.categoria ?? '—'}</TableCell>
                   <TableCell>{clpFormatter.format(Number(treatment.precio))}</TableCell>
                   <TableCell>{treatment.duracion_minutos ? `${treatment.duracion_minutos} min` : '—'}</TableCell>
                   <TableCell>
