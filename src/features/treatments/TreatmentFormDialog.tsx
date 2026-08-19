@@ -16,13 +16,18 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { toast } from 'sonner'
 import { getApiErrorMessage } from '@/lib/api-error'
+import { useEspecialidades } from '@/features/especialidades/hooks'
 import { useCreateTreatment, useUpdateTreatment } from './hooks'
 import type { Treatment } from './types'
 
+const SIN_ESPECIALIDAD = 'ninguna'
+
 const treatmentSchema = z.object({
   nombre: z.string().trim().min(1, 'El nombre es obligatorio.'),
+  especialidad_id: z.string(),
   descripcion: z.string().trim().optional(),
   precio: z
     .string()
@@ -48,6 +53,7 @@ interface TreatmentFormDialogProps {
 
 export function TreatmentFormDialog({ open, onOpenChange, treatment }: TreatmentFormDialogProps) {
   const isEditing = !!treatment
+  const { data: especialidades } = useEspecialidades()
   const createMutation = useCreateTreatment()
   const updateMutation = useUpdateTreatment()
   const isSubmitting = createMutation.isPending || updateMutation.isPending
@@ -56,6 +62,7 @@ export function TreatmentFormDialog({ open, onOpenChange, treatment }: Treatment
     resolver: zodResolver(treatmentSchema),
     defaultValues: {
       nombre: '',
+      especialidad_id: SIN_ESPECIALIDAD,
       descripcion: '',
       precio: '',
       duracion_minutos: '',
@@ -70,6 +77,7 @@ export function TreatmentFormDialog({ open, onOpenChange, treatment }: Treatment
         treatment
           ? {
               nombre: treatment.nombre,
+              especialidad_id: treatment.especialidad_id ? String(treatment.especialidad_id) : SIN_ESPECIALIDAD,
               descripcion: treatment.descripcion ?? '',
               precio: String(treatment.precio),
               duracion_minutos: treatment.duracion_minutos ? String(treatment.duracion_minutos) : '',
@@ -78,6 +86,7 @@ export function TreatmentFormDialog({ open, onOpenChange, treatment }: Treatment
             }
           : {
               nombre: '',
+              especialidad_id: SIN_ESPECIALIDAD,
               descripcion: '',
               precio: '',
               duracion_minutos: '',
@@ -92,6 +101,7 @@ export function TreatmentFormDialog({ open, onOpenChange, treatment }: Treatment
     try {
       const payload = {
         ...values,
+        especialidad_id: values.especialidad_id === SIN_ESPECIALIDAD ? null : Number(values.especialidad_id),
         precio: Number(values.precio),
         descripcion: values.descripcion || undefined,
         duracion_minutos: values.duracion_minutos ? Number(values.duracion_minutos) : undefined,
@@ -132,6 +142,32 @@ export function TreatmentFormDialog({ open, onOpenChange, treatment }: Treatment
                   <FormControl>
                     <Input placeholder="Limpieza dental" {...field} />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="especialidad_id"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Especialidad</FormLabel>
+                  <Select value={field.value} onValueChange={field.onChange}>
+                    <FormControl>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Sin especialidad" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value={SIN_ESPECIALIDAD}>Sin especialidad</SelectItem>
+                      {especialidades?.map((especialidad) => (
+                        <SelectItem key={especialidad.id} value={String(especialidad.id)}>
+                          {especialidad.nombre}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}
