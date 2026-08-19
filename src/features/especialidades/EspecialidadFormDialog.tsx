@@ -15,6 +15,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDes
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { toast } from 'sonner'
 import { getApiErrorMessage } from '@/lib/api-error'
 import { useCreateEspecialidad, useEspecialidades, useUpdateEspecialidad } from './hooks'
@@ -33,8 +34,6 @@ interface EspecialidadFormDialogProps {
   especialidad?: Especialidad | null
 }
 
-const CATEGORIAS_DATALIST_ID = 'categorias-sugeridas'
-
 export function EspecialidadFormDialog({ open, onOpenChange, especialidad }: EspecialidadFormDialogProps) {
   const isEditing = !!especialidad
   const { data: especialidades } = useEspecialidades()
@@ -42,9 +41,10 @@ export function EspecialidadFormDialog({ open, onOpenChange, especialidad }: Esp
   const updateMutation = useUpdateEspecialidad()
   const isSubmitting = createMutation.isPending || updateMutation.isPending
 
+  const [categoriaSelect, setCategoriaSelect] = useState('')
   const [categoriaInput, setCategoriaInput] = useState('')
 
-  // Sugerencias para el datalist: categorías ya usadas en cualquier especialidad del catálogo.
+  // Categorías ya usadas en cualquier especialidad del catálogo: opciones del select.
   const categoriaSuggestions = useMemo(() => {
     const set = new Set<string>()
     for (const esp of especialidades ?? []) {
@@ -60,6 +60,7 @@ export function EspecialidadFormDialog({ open, onOpenChange, especialidad }: Esp
 
   useEffect(() => {
     if (open) {
+      setCategoriaSelect('')
       setCategoriaInput('')
       form.reset(
         especialidad
@@ -71,15 +72,21 @@ export function EspecialidadFormDialog({ open, onOpenChange, especialidad }: Esp
 
   const categorias = form.watch('categorias')
 
-  function addCategoria() {
-    const value = categoriaInput.trim()
-    if (!value) return
+  function addCategoriaValue(value: string) {
+    const trimmed = value.trim()
+    if (!trimmed) return
     const current = form.getValues('categorias')
-    if (current.some((c) => c.toLowerCase() === value.toLowerCase())) {
-      setCategoriaInput('')
-      return
-    }
-    form.setValue('categorias', [...current, value], { shouldDirty: true })
+    if (current.some((c) => c.toLowerCase() === trimmed.toLowerCase())) return
+    form.setValue('categorias', [...current, trimmed], { shouldDirty: true })
+  }
+
+  function addCategoriaFromSelect() {
+    addCategoriaValue(categoriaSelect)
+    setCategoriaSelect('')
+  }
+
+  function addCategoriaFromInput() {
+    addCategoriaValue(categoriaInput)
     setCategoriaInput('')
   }
 
@@ -141,32 +148,49 @@ export function EspecialidadFormDialog({ open, onOpenChange, especialidad }: Esp
               render={() => (
                 <FormItem>
                   <FormLabel>Categorías de tratamiento</FormLabel>
-                  <FormDescription>
-                    Categorías de tratamiento que cubre esta especialidad. Escribe una y presiona «Agregar».
-                  </FormDescription>
+                  <FormDescription>Categorías de tratamiento que cubre esta especialidad.</FormDescription>
+
+                  {categoriaSuggestions.length > 0 && (
+                    <div className="flex gap-2">
+                      <Select value={categoriaSelect} onValueChange={setCategoriaSelect}>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Elige una categoría existente" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {categoriaSuggestions
+                            .filter((sugerencia) => !categorias.includes(sugerencia))
+                            .map((sugerencia) => (
+                              <SelectItem key={sugerencia} value={sugerencia}>
+                                {sugerencia}
+                              </SelectItem>
+                            ))}
+                        </SelectContent>
+                      </Select>
+                      <Button type="button" variant="outline" onClick={addCategoriaFromSelect} disabled={!categoriaSelect}>
+                        <Plus className="size-4" />
+                        Agregar
+                      </Button>
+                    </div>
+                  )}
+
                   <div className="flex gap-2">
                     <Input
-                      list={CATEGORIAS_DATALIST_ID}
-                      placeholder="Ej: Endodoncia"
+                      placeholder="O escribe una categoría nueva"
                       value={categoriaInput}
                       onChange={(event) => setCategoriaInput(event.target.value)}
                       onKeyDown={(event) => {
                         if (event.key === 'Enter') {
                           event.preventDefault()
-                          addCategoria()
+                          addCategoriaFromInput()
                         }
                       }}
                     />
-                    <datalist id={CATEGORIAS_DATALIST_ID}>
-                      {categoriaSuggestions.map((sugerencia) => (
-                        <option key={sugerencia} value={sugerencia} />
-                      ))}
-                    </datalist>
-                    <Button type="button" variant="outline" onClick={addCategoria}>
+                    <Button type="button" variant="outline" onClick={addCategoriaFromInput}>
                       <Plus className="size-4" />
                       Agregar
                     </Button>
                   </div>
+
                   {categorias.length > 0 && (
                     <div className="flex flex-wrap gap-2 pt-1">
                       {categorias.map((cat) => (

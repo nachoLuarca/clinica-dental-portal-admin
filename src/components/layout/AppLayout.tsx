@@ -22,8 +22,8 @@ const NAV_ITEMS = [
   { to: '/agenda', label: 'Agenda', icon: CalendarDays },
   { to: '/profesionales', label: 'Profesionales', icon: Stethoscope },
   { to: '/especialidades', label: 'Especialidades', icon: GraduationCap },
-  { to: '/pacientes', label: 'Pacientes', icon: Users },
   { to: '/tratamientos', label: 'Tratamientos', icon: ClipboardList },
+  { to: '/pacientes', label: 'Pacientes', icon: Users },
   { to: '/presupuestos', label: 'Presupuestos', icon: FileText },
   { to: '/marca', label: 'Marca', icon: Palette },
 ]
