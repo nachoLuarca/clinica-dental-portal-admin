@@ -76,6 +76,7 @@ export default function ProfessionalsPage() {
               <TableRow>
                 <TableHead>Nombre</TableHead>
                 <TableHead>Especialidad</TableHead>
+                <TableHead>Especialidades (catálogo)</TableHead>
                 <TableHead>Correo</TableHead>
                 <TableHead>Estado</TableHead>
                 <TableHead className="w-[120px] text-right">Acciones</TableHead>
@@ -92,6 +93,19 @@ export default function ProfessionalsPage() {
                     {professional.nombre} {professional.apellido}
                   </TableCell>
                   <TableCell>{professional.especialidad}</TableCell>
+                  <TableCell>
+                    {professional.especialidades && professional.especialidades.length > 0 ? (
+                      <div className="flex flex-wrap gap-1">
+                        {professional.especialidades.map((esp) => (
+                          <Badge key={esp.id} variant="outline">
+                            {esp.nombre}
+                          </Badge>
+                        ))}
+                      </div>
+                    ) : (
+                      <span className="text-sm text-muted-foreground">—</span>
+                    )}
+                  </TableCell>
                   <TableCell className="text-muted-foreground">{professional.email}</TableCell>
                   <TableCell>
                     <Badge variant={professional.activo ? 'default' : 'secondary'}>

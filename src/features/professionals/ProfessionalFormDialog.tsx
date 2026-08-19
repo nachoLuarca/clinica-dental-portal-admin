@@ -17,6 +17,7 @@ import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { toast } from 'sonner'
 import { getApiErrorMessage } from '@/lib/api-error'
+import { useEspecialidades } from '@/features/especialidades/hooks'
 import { useCreateProfessional, useUpdateProfessional } from './hooks'
 import type { Professional } from './types'
 
@@ -26,6 +27,7 @@ const professionalSchema = z.object({
   especialidad: z.string().trim().min(1, 'La especialidad es obligatoria.'),
   email: z.string().trim().min(1, 'El correo es obligatorio.').email('Ingresa un correo válido.'),
   activo: z.boolean(),
+  especialidades: z.array(z.number()),
 })
 
 type ProfessionalFormValues = z.infer<typeof professionalSchema>
@@ -38,6 +40,7 @@ interface ProfessionalFormDialogProps {
 
 export function ProfessionalFormDialog({ open, onOpenChange, professional }: ProfessionalFormDialogProps) {
   const isEditing = !!professional
+  const { data: especialidadesCatalogo } = useEspecialidades()
   const createMutation = useCreateProfessional()
   const updateMutation = useUpdateProfessional()
   const isSubmitting = createMutation.isPending || updateMutation.isPending
@@ -50,6 +53,7 @@ export function ProfessionalFormDialog({ open, onOpenChange, professional }: Pro
       especialidad: '',
       email: '',
       activo: true,
+      especialidades: [],
     },
   })
 
@@ -63,8 +67,9 @@ export function ProfessionalFormDialog({ open, onOpenChange, professional }: Pro
               especialidad: professional.especialidad,
               email: professional.email,
               activo: professional.activo,
+              especialidades: professional.especialidades?.map((e) => e.id) ?? [],
             }
-          : { nombre: '', apellido: '', especialidad: '', email: '', activo: true },
+          : { nombre: '', apellido: '', especialidad: '', email: '', activo: true, especialidades: [] },
       )
     }
   }, [open, professional, form])
@@ -136,6 +141,39 @@ export function ProfessionalFormDialog({ open, onOpenChange, professional }: Pro
                   <FormControl>
                     <Input placeholder="Ortodoncia" {...field} />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="especialidades"
+              render={() => (
+                <FormItem>
+                  <FormLabel>Especialidades del catálogo</FormLabel>
+                  {(especialidadesCatalogo ?? []).length === 0 ? (
+                    <p className="text-sm text-muted-foreground">
+                      Aún no hay especialidades registradas en el catálogo de la clínica.
+                    </p>
+                  ) : (
+                    <div className="grid grid-cols-2 gap-2 rounded-md border p-3 sm:grid-cols-3">
+                      {(especialidadesCatalogo ?? []).map((esp) => (
+                        <label key={esp.id} className="flex items-center gap-2 text-sm font-normal">
+                          <Checkbox
+                            checked={form.watch('especialidades').includes(esp.id)}
+                            onCheckedChange={(checked) => {
+                              const current = new Set(form.getValues('especialidades'))
+                              if (checked) current.add(esp.id)
+                              else current.delete(esp.id)
+                              form.setValue('especialidades', Array.from(current), { shouldDirty: true })
+                            }}
+                          />
+                          {esp.nombre}
+                        </label>
+                      ))}
+                    </div>
+                  )}
                   <FormMessage />
                 </FormItem>
               )}

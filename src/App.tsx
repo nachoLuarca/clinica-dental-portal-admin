@@ -11,6 +11,7 @@ import { syncPendingPatients } from '@/features/patients/offline-queue'
 import LoginPage from '@/pages/LoginPage'
 import DashboardPage from '@/pages/DashboardPage'
 import ProfessionalsPage from '@/features/professionals/ProfessionalsPage'
+import EspecialidadesPage from '@/features/especialidades/EspecialidadesPage'
 import PatientsPage from '@/features/patients/PatientsPage'
 import PatientDetailPage from '@/features/patients/PatientDetailPage'
 import TreatmentsPage from '@/features/treatments/TreatmentsPage'
@@ -90,6 +91,14 @@ function App() {
               element={
                 <Protected>
                   <ProfessionalsPage />
+                </Protected>
+              }
+            />
+            <Route
+              path="/especialidades"
+              element={
+                <Protected>
+                  <EspecialidadesPage />
                 </Protected>
               }
             />
