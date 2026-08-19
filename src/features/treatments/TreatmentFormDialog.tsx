@@ -16,8 +16,10 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { toast } from 'sonner'
 import { getApiErrorMessage } from '@/lib/api-error'
+import { useEspecialidades } from '@/features/especialidades/hooks'
 import { useCreateTreatment, useUpdateTreatment } from './hooks'
 import type { Treatment } from './types'
 
@@ -36,6 +38,7 @@ const treatmentSchema = z.object({
     .refine((value) => !value || Number(value) > 0, 'La duración debe ser mayor a cero.'),
   es_diferencial: z.boolean(),
   activo: z.boolean(),
+  especialidad_id: z.string().trim().min(1, 'La especialidad es obligatoria.'),
 })
 
 type TreatmentFormValues = z.infer<typeof treatmentSchema>
@@ -48,6 +51,7 @@ interface TreatmentFormDialogProps {
 
 export function TreatmentFormDialog({ open, onOpenChange, treatment }: TreatmentFormDialogProps) {
   const isEditing = !!treatment
+  const { data: especialidades } = useEspecialidades()
   const createMutation = useCreateTreatment()
   const updateMutation = useUpdateTreatment()
   const isSubmitting = createMutation.isPending || updateMutation.isPending
@@ -61,6 +65,7 @@ export function TreatmentFormDialog({ open, onOpenChange, treatment }: Treatment
       duracion_minutos: '',
       es_diferencial: false,
       activo: true,
+      especialidad_id: '',
     },
   })
 
@@ -75,6 +80,7 @@ export function TreatmentFormDialog({ open, onOpenChange, treatment }: Treatment
               duracion_minutos: treatment.duracion_minutos ? String(treatment.duracion_minutos) : '',
               es_diferencial: treatment.es_diferencial,
               activo: treatment.activo,
+              especialidad_id: treatment.especialidad_id ? String(treatment.especialidad_id) : '',
             }
           : {
               nombre: '',
@@ -83,6 +89,7 @@ export function TreatmentFormDialog({ open, onOpenChange, treatment }: Treatment
               duracion_minutos: '',
               es_diferencial: false,
               activo: true,
+              especialidad_id: '',
             },
       )
     }
@@ -95,6 +102,7 @@ export function TreatmentFormDialog({ open, onOpenChange, treatment }: Treatment
         precio: Number(values.precio),
         descripcion: values.descripcion || undefined,
         duracion_minutos: values.duracion_minutos ? Number(values.duracion_minutos) : null,
+        especialidad_id: Number(values.especialidad_id),
       }
       if (isEditing && treatment) {
         await updateMutation.mutateAsync({ id: treatment.id, payload })
@@ -179,6 +187,31 @@ export function TreatmentFormDialog({ open, onOpenChange, treatment }: Treatment
                 )}
               />
             </div>
+
+            <FormField
+              control={form.control}
+              name="especialidad_id"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Especialidad</FormLabel>
+                  <Select value={field.value} onValueChange={field.onChange}>
+                    <FormControl>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Selecciona una especialidad" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {especialidades?.map((especialidad) => (
+                        <SelectItem key={especialidad.id} value={String(especialidad.id)}>
+                          {especialidad.nombre}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             <FormField
               control={form.control}
