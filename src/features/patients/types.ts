@@ -7,6 +7,7 @@ export interface Patient {
   id: number
   tenant_id: number
   nombre: string
+  rut: string
   email: string
   fecha_nacimiento: string
   telefono: string | null
@@ -19,6 +20,7 @@ export interface Patient {
 
 export interface PatientPayload {
   nombre: string
+  rut: string
   email: string
   fecha_nacimiento: string
   telefono?: string

@@ -84,6 +84,7 @@ export default function PatientDetailPage() {
             <CardHeader className="flex flex-row items-start justify-between gap-3">
               <div>
                 <CardTitle className="text-xl">{patient.nombre}</CardTitle>
+                <p className="text-sm text-muted-foreground">{patient.rut}</p>
                 <p className="text-sm text-muted-foreground">{patient.email}</p>
               </div>
               <Button variant="outline" size="sm" onClick={() => setPatientFormOpen(true)}>
