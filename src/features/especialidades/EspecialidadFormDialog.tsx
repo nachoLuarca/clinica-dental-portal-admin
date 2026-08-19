@@ -42,7 +42,6 @@ export function EspecialidadFormDialog({ open, onOpenChange, especialidad }: Esp
   const isSubmitting = createMutation.isPending || updateMutation.isPending
 
   const [categoriaSelect, setCategoriaSelect] = useState('')
-  const [categoriaInput, setCategoriaInput] = useState('')
 
   // Categorías ya usadas en cualquier especialidad del catálogo: opciones del select.
   const categoriaSuggestions = useMemo(() => {
@@ -61,7 +60,6 @@ export function EspecialidadFormDialog({ open, onOpenChange, especialidad }: Esp
   useEffect(() => {
     if (open) {
       setCategoriaSelect('')
-      setCategoriaInput('')
       form.reset(
         especialidad
           ? { nombre: especialidad.nombre, categorias: especialidad.categorias.map((c) => c.categoria) }
@@ -83,11 +81,6 @@ export function EspecialidadFormDialog({ open, onOpenChange, especialidad }: Esp
   function addCategoriaFromSelect() {
     addCategoriaValue(categoriaSelect)
     setCategoriaSelect('')
-  }
-
-  function addCategoriaFromInput() {
-    addCategoriaValue(categoriaInput)
-    setCategoriaInput('')
   }
 
   function removeCategoria(value: string) {
@@ -150,7 +143,7 @@ export function EspecialidadFormDialog({ open, onOpenChange, especialidad }: Esp
                   <FormLabel>Categorías de tratamiento</FormLabel>
                   <FormDescription>Categorías de tratamiento que cubre esta especialidad.</FormDescription>
 
-                  {categoriaSuggestions.length > 0 && (
+                  {categoriaSuggestions.length > 0 ? (
                     <div className="flex gap-2">
                       <Select value={categoriaSelect} onValueChange={setCategoriaSelect}>
                         <SelectTrigger className="w-full">
@@ -171,25 +164,11 @@ export function EspecialidadFormDialog({ open, onOpenChange, especialidad }: Esp
                         Agregar
                       </Button>
                     </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">
+                      Aún no hay categorías registradas en el catálogo.
+                    </p>
                   )}
-
-                  <div className="flex gap-2">
-                    <Input
-                      placeholder="O escribe una categoría nueva"
-                      value={categoriaInput}
-                      onChange={(event) => setCategoriaInput(event.target.value)}
-                      onKeyDown={(event) => {
-                        if (event.key === 'Enter') {
-                          event.preventDefault()
-                          addCategoriaFromInput()
-                        }
-                      }}
-                    />
-                    <Button type="button" variant="outline" onClick={addCategoriaFromInput}>
-                      <Plus className="size-4" />
-                      Agregar
-                    </Button>
-                  </div>
 
                   {categorias.length > 0 && (
                     <div className="flex flex-wrap gap-2 pt-1">
