@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -18,11 +18,14 @@ import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { toast } from 'sonner'
 import { getApiErrorMessage } from '@/lib/api-error'
-import { useCreateTreatment, useUpdateTreatment } from './hooks'
+import { useCreateTreatment, useTreatments, useUpdateTreatment } from './hooks'
 import type { Treatment } from './types'
+
+const CATEGORIAS_DATALIST_ID = 'categorias-tratamiento-sugeridas'
 
 const treatmentSchema = z.object({
   nombre: z.string().trim().min(1, 'El nombre es obligatorio.'),
+  categoria: z.string().trim().optional(),
   descripcion: z.string().trim().optional(),
   precio: z
     .string()
@@ -48,14 +51,25 @@ interface TreatmentFormDialogProps {
 
 export function TreatmentFormDialog({ open, onOpenChange, treatment }: TreatmentFormDialogProps) {
   const isEditing = !!treatment
+  const { data: treatments } = useTreatments()
   const createMutation = useCreateTreatment()
   const updateMutation = useUpdateTreatment()
   const isSubmitting = createMutation.isPending || updateMutation.isPending
+
+  // Sugerencias para el datalist: categorías ya usadas en el catálogo de tratamientos.
+  const categoriaSuggestions = useMemo(() => {
+    const set = new Set<string>()
+    for (const item of treatments ?? []) {
+      if (item.categoria) set.add(item.categoria)
+    }
+    return Array.from(set).sort((a, b) => a.localeCompare(b))
+  }, [treatments])
 
   const form = useForm<TreatmentFormValues>({
     resolver: zodResolver(treatmentSchema),
     defaultValues: {
       nombre: '',
+      categoria: '',
       descripcion: '',
       precio: '',
       duracion_minutos: '',
@@ -70,6 +84,7 @@ export function TreatmentFormDialog({ open, onOpenChange, treatment }: Treatment
         treatment
           ? {
               nombre: treatment.nombre,
+              categoria: treatment.categoria ?? '',
               descripcion: treatment.descripcion ?? '',
               precio: String(treatment.precio),
               duracion_minutos: treatment.duracion_minutos ? String(treatment.duracion_minutos) : '',
@@ -78,6 +93,7 @@ export function TreatmentFormDialog({ open, onOpenChange, treatment }: Treatment
             }
           : {
               nombre: '',
+              categoria: '',
               descripcion: '',
               precio: '',
               duracion_minutos: '',
@@ -92,6 +108,7 @@ export function TreatmentFormDialog({ open, onOpenChange, treatment }: Treatment
     try {
       const payload = {
         ...values,
+        categoria: values.categoria || undefined,
         precio: Number(values.precio),
         descripcion: values.descripcion || undefined,
         duracion_minutos: values.duracion_minutos ? Number(values.duracion_minutos) : null,
@@ -132,6 +149,25 @@ export function TreatmentFormDialog({ open, onOpenChange, treatment }: Treatment
                   <FormControl>
                     <Input placeholder="Limpieza dental" {...field} />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="categoria"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Categoría</FormLabel>
+                  <FormControl>
+                    <Input list={CATEGORIAS_DATALIST_ID} placeholder="Ej: Endodoncia" {...field} />
+                  </FormControl>
+                  <datalist id={CATEGORIAS_DATALIST_ID}>
+                    {categoriaSuggestions.map((sugerencia) => (
+                      <option key={sugerencia} value={sugerencia} />
+                    ))}
+                  </datalist>
                   <FormMessage />
                 </FormItem>
               )}

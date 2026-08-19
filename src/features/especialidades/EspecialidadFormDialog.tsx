@@ -18,7 +18,8 @@ import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { toast } from 'sonner'
 import { getApiErrorMessage } from '@/lib/api-error'
-import { useCreateEspecialidad, useEspecialidades, useUpdateEspecialidad } from './hooks'
+import { useTreatments } from '@/features/treatments/hooks'
+import { useCreateEspecialidad, useUpdateEspecialidad } from './hooks'
 import type { Especialidad } from './types'
 
 const especialidadSchema = z.object({
@@ -36,21 +37,22 @@ interface EspecialidadFormDialogProps {
 
 export function EspecialidadFormDialog({ open, onOpenChange, especialidad }: EspecialidadFormDialogProps) {
   const isEditing = !!especialidad
-  const { data: especialidades } = useEspecialidades()
+  const { data: treatments } = useTreatments()
   const createMutation = useCreateEspecialidad()
   const updateMutation = useUpdateEspecialidad()
   const isSubmitting = createMutation.isPending || updateMutation.isPending
 
   const [categoriaSelect, setCategoriaSelect] = useState('')
 
-  // Categorías ya usadas en cualquier especialidad del catálogo: opciones del select.
+  // Categorías del catálogo de tratamientos: opciones del select. Se crean
+  // en el CRUD de tratamientos, acá solo se asignan a la especialidad.
   const categoriaSuggestions = useMemo(() => {
     const set = new Set<string>()
-    for (const esp of especialidades ?? []) {
-      for (const cat of esp.categorias) set.add(cat.categoria)
+    for (const treatment of treatments ?? []) {
+      if (treatment.categoria) set.add(treatment.categoria)
     }
     return Array.from(set).sort((a, b) => a.localeCompare(b))
-  }, [especialidades])
+  }, [treatments])
 
   const form = useForm<EspecialidadFormValues>({
     resolver: zodResolver(especialidadSchema),
@@ -166,7 +168,8 @@ export function EspecialidadFormDialog({ open, onOpenChange, especialidad }: Esp
                     </div>
                   ) : (
                     <p className="text-sm text-muted-foreground">
-                      Aún no hay categorías registradas en el catálogo.
+                      Aún no hay categorías de tratamiento registradas. Se crean asignando una categoría a un
+                      tratamiento en el catálogo de Tratamientos.
                     </p>
                   )}
 
