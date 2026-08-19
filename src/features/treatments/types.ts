@@ -9,6 +9,7 @@ export interface Treatment {
   id: number
   tenant_id: number
   nombre: string
+  categoria: string | null
   descripcion: string | null
   precio: string
   duracion_minutos: number | null
@@ -20,6 +21,7 @@ export interface Treatment {
 
 export interface TreatmentPayload {
   nombre: string
+  categoria?: string
   descripcion?: string
   precio: number
   duracion_minutos?: number | null
