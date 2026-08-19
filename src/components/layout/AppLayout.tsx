@@ -4,6 +4,7 @@ import {
   CalendarDays,
   ClipboardList,
   FileText,
+  GraduationCap,
   LogOut,
   Palette,
   ShieldCheck,
@@ -20,6 +21,7 @@ import { useAuth } from '@/features/auth/AuthContext'
 const NAV_ITEMS = [
   { to: '/agenda', label: 'Agenda', icon: CalendarDays },
   { to: '/profesionales', label: 'Profesionales', icon: Stethoscope },
+  { to: '/especialidades', label: 'Especialidades', icon: GraduationCap },
   { to: '/pacientes', label: 'Pacientes', icon: Users },
   { to: '/tratamientos', label: 'Tratamientos', icon: ClipboardList },
   { to: '/presupuestos', label: 'Presupuestos', icon: FileText },
