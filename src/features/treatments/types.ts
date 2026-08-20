@@ -5,10 +5,10 @@
  * diferencial: uno creado a medida para un caso puntual, en vez de un
  * tratamiento estándar del catálogo de la clínica.
  *
- * `categoria` es texto libre, solo descriptivo (ficha rica del catálogo
- * público). La relación real con el catálogo de especialidades es
- * `especialidad_id` (FK): un tratamiento pertenece a una sola especialidad,
- * o ninguna.
+ * `especialidad_id`/`especialidad` reflejan la relación real con el
+ * catálogo de especialidades (un tratamiento pertenece a una sola, o
+ * ninguna), pero esa asignación se gestiona solo desde el mantenedor de
+ * Especialidades — el CRUD de tratamientos no la expone.
  */
 export interface TreatmentEspecialidad {
   id: number
@@ -19,7 +19,6 @@ export interface Treatment {
   id: number
   tenant_id: number
   nombre: string
-  categoria: string | null
   especialidad_id: number | null
   especialidad: TreatmentEspecialidad | null
   descripcion: string | null
