@@ -33,7 +33,6 @@ export interface Treatment {
 
 export interface TreatmentPayload {
   nombre: string
-  especialidad_id?: number | null
   descripcion?: string
   precio: number
   duracion_minutos?: number | null
