@@ -37,7 +37,7 @@ interface EspecialidadFormDialogProps {
 
 export function EspecialidadFormDialog({ open, onOpenChange, especialidad }: EspecialidadFormDialogProps) {
   const isEditing = !!especialidad
-  const { data: treatments } = useTreatments()
+  const { data: treatments, isLoading: treatmentsLoading } = useTreatments()
   const createMutation = useCreateEspecialidad()
   const updateMutation = useUpdateEspecialidad()
   const isSubmitting = createMutation.isPending || updateMutation.isPending
@@ -148,7 +148,9 @@ export function EspecialidadFormDialog({ open, onOpenChange, especialidad }: Esp
                   <FormLabel>Tratamientos</FormLabel>
                   <FormDescription>Tratamientos del catálogo que cubre esta especialidad.</FormDescription>
 
-                  {assignableTreatments.filter((t) => !treatmentIds.includes(t.id)).length > 0 ? (
+                  {treatmentsLoading ? (
+                    <p className="text-sm text-muted-foreground">Cargando tratamientos…</p>
+                  ) : assignableTreatments.filter((t) => !treatmentIds.includes(t.id)).length > 0 ? (
                     <div className="flex gap-2">
                       <Select value={treatmentSelect} onValueChange={setTreatmentSelect}>
                         <SelectTrigger className="w-full">
@@ -184,7 +186,7 @@ export function EspecialidadFormDialog({ open, onOpenChange, especialidad }: Esp
                     <div className="flex flex-wrap gap-2 pt-1">
                       {treatmentIds.map((id) => (
                         <Badge key={id} variant="secondary" className="gap-1 pr-1">
-                          {treatmentsById.get(id) ?? `#${id}`}
+                          {treatmentsById.get(id) ?? (treatmentsLoading ? 'Cargando…' : `#${id}`)}
                           <button
                             type="button"
                             className="rounded-full p-0.5 hover:bg-muted-foreground/20"
