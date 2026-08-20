@@ -75,8 +75,7 @@ export default function ProfessionalsPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>Nombre</TableHead>
-                <TableHead>Especialidad</TableHead>
-                <TableHead>Especialidades (catálogo)</TableHead>
+                <TableHead>Especialidades</TableHead>
                 <TableHead>Correo</TableHead>
                 <TableHead>Estado</TableHead>
                 <TableHead className="w-[120px] text-right">Acciones</TableHead>
@@ -92,7 +91,6 @@ export default function ProfessionalsPage() {
                   <TableCell className="font-medium">
                     {professional.nombre} {professional.apellido}
                   </TableCell>
-                  <TableCell>{professional.especialidad}</TableCell>
                   <TableCell>
                     {professional.especialidades && professional.especialidades.length > 0 ? (
                       <div className="flex flex-wrap gap-1">

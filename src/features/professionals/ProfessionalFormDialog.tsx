@@ -47,7 +47,6 @@ const horarioSchema = z
 const professionalSchema = z.object({
   nombre: z.string().trim().min(1, 'El nombre es obligatorio.'),
   apellido: z.string().trim().min(1, 'El apellido es obligatorio.'),
-  especialidad: z.string().trim().min(1, 'La especialidad es obligatoria.'),
   email: z.string().trim().min(1, 'El correo es obligatorio.').email('Ingresa un correo válido.'),
   activo: z.boolean(),
   especialidades: z.array(z.number()),
@@ -74,7 +73,6 @@ export function ProfessionalFormDialog({ open, onOpenChange, professional }: Pro
     defaultValues: {
       nombre: '',
       apellido: '',
-      especialidad: '',
       email: '',
       activo: true,
       especialidades: [],
@@ -91,7 +89,6 @@ export function ProfessionalFormDialog({ open, onOpenChange, professional }: Pro
           ? {
               nombre: professional.nombre,
               apellido: professional.apellido,
-              especialidad: professional.especialidad,
               email: professional.email,
               activo: professional.activo,
               especialidades: professional.especialidades?.map((e) => e.id) ?? [],
@@ -105,7 +102,6 @@ export function ProfessionalFormDialog({ open, onOpenChange, professional }: Pro
           : {
               nombre: '',
               apellido: '',
-              especialidad: '',
               email: '',
               activo: true,
               especialidades: [],
@@ -175,24 +171,10 @@ export function ProfessionalFormDialog({ open, onOpenChange, professional }: Pro
 
             <FormField
               control={form.control}
-              name="especialidad"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Especialidad</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Ortodoncia" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
               name="especialidades"
               render={() => (
                 <FormItem>
-                  <FormLabel>Especialidades del catálogo</FormLabel>
+                  <FormLabel>Especialidades</FormLabel>
                   {(especialidadesCatalogo ?? []).length === 0 ? (
                     <p className="text-sm text-muted-foreground">
                       Aún no hay especialidades registradas en el catálogo de la clínica.
