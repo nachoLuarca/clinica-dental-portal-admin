@@ -1,8 +1,8 @@
 import { useEffect } from 'react'
-import { useForm } from 'react-hook-form'
+import { useFieldArray, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Loader2 } from 'lucide-react'
+import { Loader2, Plus, Trash2 } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -13,13 +13,36 @@ import {
 } from '@/components/ui/dialog'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { toast } from 'sonner'
 import { getApiErrorMessage } from '@/lib/api-error'
 import { useEspecialidades } from '@/features/especialidades/hooks'
 import { useCreateProfessional, useUpdateProfessional } from './hooks'
 import type { Professional } from './types'
+
+const DIAS_SEMANA = [
+  { value: 0, label: 'Domingo' },
+  { value: 1, label: 'Lunes' },
+  { value: 2, label: 'Martes' },
+  { value: 3, label: 'Miércoles' },
+  { value: 4, label: 'Jueves' },
+  { value: 5, label: 'Viernes' },
+  { value: 6, label: 'Sábado' },
+]
+
+const horarioSchema = z
+  .object({
+    dia_semana: z.number().min(0).max(6),
+    hora_inicio: z.string().min(1, 'Obligatorio.'),
+    hora_fin: z.string().min(1, 'Obligatorio.'),
+  })
+  .refine((h) => h.hora_fin > h.hora_inicio, {
+    message: 'Debe ser posterior a la hora de inicio.',
+    path: ['hora_fin'],
+  })
 
 const professionalSchema = z.object({
   nombre: z.string().trim().min(1, 'El nombre es obligatorio.'),
@@ -28,6 +51,7 @@ const professionalSchema = z.object({
   email: z.string().trim().min(1, 'El correo es obligatorio.').email('Ingresa un correo válido.'),
   activo: z.boolean(),
   especialidades: z.array(z.number()),
+  horarios: z.array(horarioSchema),
 })
 
 type ProfessionalFormValues = z.infer<typeof professionalSchema>
@@ -54,8 +78,11 @@ export function ProfessionalFormDialog({ open, onOpenChange, professional }: Pro
       email: '',
       activo: true,
       especialidades: [],
+      horarios: [],
     },
   })
+
+  const horariosField = useFieldArray({ control: form.control, name: 'horarios' })
 
   useEffect(() => {
     if (open) {
@@ -68,8 +95,22 @@ export function ProfessionalFormDialog({ open, onOpenChange, professional }: Pro
               email: professional.email,
               activo: professional.activo,
               especialidades: professional.especialidades?.map((e) => e.id) ?? [],
+              horarios:
+                professional.schedules?.map((s) => ({
+                  dia_semana: s.dia_semana,
+                  hora_inicio: s.hora_inicio.slice(0, 5),
+                  hora_fin: s.hora_fin.slice(0, 5),
+                })) ?? [],
             }
-          : { nombre: '', apellido: '', especialidad: '', email: '', activo: true, especialidades: [] },
+          : {
+              nombre: '',
+              apellido: '',
+              especialidad: '',
+              email: '',
+              activo: true,
+              especialidades: [],
+              horarios: [],
+            },
       )
     }
   }, [open, professional, form])
@@ -178,6 +219,93 @@ export function ProfessionalFormDialog({ open, onOpenChange, professional }: Pro
                 </FormItem>
               )}
             />
+
+            <div className="flex flex-col gap-2">
+              <Label>Horarios de atención</Label>
+              <p className="text-sm text-muted-foreground">
+                Tramos horarios propios de este profesional (no se comparten con otros).
+              </p>
+
+              {horariosField.fields.length > 0 && (
+                <div className="flex flex-col gap-2">
+                  {horariosField.fields.map((field, index) => (
+                    <div key={field.id} className="flex items-end gap-2 rounded-md border p-2">
+                      <FormField
+                        control={form.control}
+                        name={`horarios.${index}.dia_semana`}
+                        render={({ field: diaField }) => (
+                          <FormItem className="flex-1">
+                            <FormLabel className="text-xs font-normal">Día</FormLabel>
+                            <Select
+                              value={String(diaField.value)}
+                              onValueChange={(value) => diaField.onChange(Number(value))}
+                            >
+                              <FormControl>
+                                <SelectTrigger className="w-full">
+                                  <SelectValue />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {DIAS_SEMANA.map((dia) => (
+                                  <SelectItem key={dia.value} value={String(dia.value)}>
+                                    {dia.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name={`horarios.${index}.hora_inicio`}
+                        render={({ field: horaField }) => (
+                          <FormItem>
+                            <FormLabel className="text-xs font-normal">Desde</FormLabel>
+                            <FormControl>
+                              <Input type="time" {...horaField} />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name={`horarios.${index}.hora_fin`}
+                        render={({ field: horaField }) => (
+                          <FormItem>
+                            <FormLabel className="text-xs font-normal">Hasta</FormLabel>
+                            <FormControl>
+                              <Input type="time" {...horaField} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon-sm"
+                        onClick={() => horariosField.remove(index)}
+                      >
+                        <Trash2 className="size-4 text-destructive" />
+                        <span className="sr-only">Quitar tramo</span>
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="self-start"
+                onClick={() => horariosField.append({ dia_semana: 1, hora_inicio: '09:00', hora_fin: '13:00' })}
+              >
+                <Plus className="size-4" />
+                Agregar tramo
+              </Button>
+            </div>
 
             <FormField
               control={form.control}
