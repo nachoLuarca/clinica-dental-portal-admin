@@ -3,9 +3,9 @@ import type { Especialidad } from '@/features/especialidades/types'
 /**
  * Tipos del dominio de profesionales.
  *
- * `especialidad` (texto libre) es el campo histórico y sigue existiendo tal
- * cual. `especialidades` es una capa nueva en paralelo: relación N:N contra
- * el catálogo de especialidades de la clínica.
+ * `especialidades` es la relación N:N real contra el catálogo de
+ * especialidades de la clínica (el campo de texto libre legado ya no se usa
+ * en el frontend).
  *
  * `schedules` (respuesta) / `horarios` (payload): tramos horarios propios
  * del profesional, sin nada compartido entre profesionales. `dia_semana` va
@@ -31,7 +31,6 @@ export interface Professional {
   tenant_id: number
   nombre: string
   apellido: string
-  especialidad: string
   email: string
   activo: boolean
   created_at: string
@@ -43,7 +42,6 @@ export interface Professional {
 export interface ProfessionalPayload {
   nombre: string
   apellido: string
-  especialidad: string
   email: string
   activo: boolean
   /** IDs de especialidades. Si se envía, reemplaza por completo lo asignado. */
