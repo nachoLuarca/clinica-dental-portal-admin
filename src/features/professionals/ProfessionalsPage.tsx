@@ -13,6 +13,8 @@ import { useDeleteProfessional, useProfessionals } from './hooks'
 import { ProfessionalFormDialog } from './ProfessionalFormDialog'
 import type { Professional } from './types'
 
+const DIAS_ABREV = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']
+
 export default function ProfessionalsPage() {
   const { data: professionals, isLoading, isError, error } = useProfessionals()
   const deleteMutation = useDeleteProfessional()
@@ -76,6 +78,7 @@ export default function ProfessionalsPage() {
               <TableRow>
                 <TableHead>Nombre</TableHead>
                 <TableHead>Especialidades</TableHead>
+                <TableHead>Horarios</TableHead>
                 <TableHead>Correo</TableHead>
                 <TableHead>Estado</TableHead>
                 <TableHead className="w-[120px] text-right">Acciones</TableHead>
@@ -97,6 +100,19 @@ export default function ProfessionalsPage() {
                         {professional.especialidades.map((esp) => (
                           <Badge key={esp.id} variant="outline">
                             {esp.nombre}
+                          </Badge>
+                        ))}
+                      </div>
+                    ) : (
+                      <span className="text-sm text-muted-foreground">—</span>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {professional.schedules && professional.schedules.length > 0 ? (
+                      <div className="flex flex-wrap gap-1">
+                        {professional.schedules.map((s) => (
+                          <Badge key={s.id} variant="outline">
+                            {DIAS_ABREV[s.dia_semana]} {s.hora_inicio.slice(0, 5)}–{s.hora_fin.slice(0, 5)}
                           </Badge>
                         ))}
                       </div>
