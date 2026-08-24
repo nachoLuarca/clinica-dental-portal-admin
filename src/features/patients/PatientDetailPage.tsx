@@ -8,6 +8,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { ConfirmDeleteDialog } from '@/components/shared/ConfirmDeleteDialog'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { getApiErrorMessage, isForbiddenError } from '@/lib/api-error'
+import { formatTelefono } from '@/lib/phone'
 import { useDeleteDiagnosis, usePatient } from './hooks'
 import { DiagnosisFormDialog } from './DiagnosisFormDialog'
 import { PatientFormDialog } from './PatientFormDialog'
@@ -83,7 +84,9 @@ export default function PatientDetailPage() {
           <Card className="duration-300 animate-in fade-in slide-in-from-bottom-1 fill-mode-both">
             <CardHeader className="flex flex-row items-start justify-between gap-3">
               <div>
-                <CardTitle className="text-xl">{patient.nombre}</CardTitle>
+                <CardTitle className="text-xl">
+                  {patient.nombre} {patient.apellido ?? ''}
+                </CardTitle>
                 <p className="text-sm text-muted-foreground">{patient.rut}</p>
                 <p className="text-sm text-muted-foreground">{patient.email}</p>
               </div>
@@ -99,11 +102,19 @@ export default function PatientDetailPage() {
               </div>
               <div>
                 <p className="text-muted-foreground">Teléfono</p>
-                <p>{patient.telefono ?? '—'}</p>
+                <p>{formatTelefono(patient.telefono)}</p>
               </div>
               <div>
                 <p className="text-muted-foreground">Notas</p>
                 <p>{patient.notas ?? '—'}</p>
+              </div>
+              <div>
+                <p className="text-muted-foreground">Datos aceptados</p>
+                <p>
+                  {patient.datos_aceptados_at
+                    ? dateFormatter.format(new Date(patient.datos_aceptados_at))
+                    : '—'}
+                </p>
               </div>
             </CardContent>
           </Card>

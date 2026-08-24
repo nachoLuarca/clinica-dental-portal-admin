@@ -8,7 +8,11 @@ import type { Diagnosis, DiagnosisPayload, Patient, PatientPayload } from './typ
  * automáticamente.
  */
 export async function fetchPatients(): Promise<Patient[]> {
-  const { data } = await apiClient.get<PaginatedResponse<Patient>>('/api/staff/patients')
+  // El listado del staff no soporta búsqueda por parámetro: se trae todo
+  // (per_page alto) y el filtro por nombre/RUT/correo se hace en el cliente.
+  const { data } = await apiClient.get<PaginatedResponse<Patient>>('/api/staff/patients', {
+    params: { per_page: 200 },
+  })
   return data.data
 }
 

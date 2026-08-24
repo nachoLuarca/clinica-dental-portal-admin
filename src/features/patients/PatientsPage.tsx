@@ -1,9 +1,10 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { AlertCircle, CloudUpload, Pencil, Plus, RefreshCw, Trash2, Users } from 'lucide-react'
+import { AlertCircle, CloudUpload, Pencil, Plus, RefreshCw, Search, Trash2, Users } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { Input } from '@/components/ui/input'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { ConfirmDeleteDialog } from '@/components/shared/ConfirmDeleteDialog'
 import { PageHeader } from '@/components/shared/PageHeader'
@@ -11,11 +12,19 @@ import { EmptyState } from '@/components/shared/EmptyState'
 import { TableSkeleton } from '@/components/shared/TableSkeleton'
 import { getApiErrorMessage } from '@/lib/api-error'
 import { useOnlineStatus } from '@/lib/use-online-status'
+import { formatTelefono } from '@/lib/phone'
 import { useDeletePatient, usePatients, usePendingPatients, useRemovePendingPatient, useSyncPendingPatients } from './hooks'
 import { PatientFormDialog } from './PatientFormDialog'
 import type { Patient } from './types'
 
 const dateFormatter = new Intl.DateTimeFormat('es-CL', { dateStyle: 'medium' })
+
+function normalizar(value: string): string {
+  return value
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+}
 
 export default function PatientsPage() {
   const { data: patients, isLoading, isError, error } = usePatients()
@@ -28,6 +37,18 @@ export default function PatientsPage() {
   const [formOpen, setFormOpen] = useState(false)
   const [editing, setEditing] = useState<Patient | null>(null)
   const [deleting, setDeleting] = useState<Patient | null>(null)
+  const [search, setSearch] = useState('')
+
+  const filteredPatients = useMemo(() => {
+    const query = normalizar(search.trim())
+    if (!query) return patients ?? []
+    return (patients ?? []).filter((patient) => {
+      const haystack = normalizar(
+        [patient.nombre, patient.apellido ?? '', patient.rut, patient.email].join(' '),
+      )
+      return haystack.includes(query)
+    })
+  }, [patients, search])
 
   function openCreate() {
     setEditing(null)
@@ -64,6 +85,16 @@ export default function PatientsPage() {
           </Button>
         }
       />
+
+      <div className="relative max-w-sm">
+        <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+        <Input
+          placeholder="Buscar por nombre, RUT o correo…"
+          value={search}
+          onChange={(event) => setSearch(event.target.value)}
+          className="pl-9"
+        />
+      </div>
 
       {pendingPatients.length > 0 && (
         <div className="flex flex-col gap-2 rounded-lg border border-dashed border-amber-500/50 bg-amber-500/5 p-3 duration-300 animate-in fade-in fill-mode-both">
@@ -142,7 +173,11 @@ export default function PatientsPage() {
         <EmptyState icon={Users} message="Aún no hay pacientes registrados." />
       )}
 
-      {!isLoading && !isError && patients && patients.length > 0 && (
+      {!isLoading && !isError && patients && patients.length > 0 && filteredPatients.length === 0 && (
+        <EmptyState icon={Search} message="No hay pacientes que coincidan con la búsqueda." />
+      )}
+
+      {!isLoading && !isError && filteredPatients.length > 0 && (
         <div className="rounded-lg border duration-300 animate-in fade-in fill-mode-both">
           <Table>
             <TableHeader>
@@ -152,11 +187,12 @@ export default function PatientsPage() {
                 <TableHead>Correo</TableHead>
                 <TableHead>Fecha de nacimiento</TableHead>
                 <TableHead>Teléfono</TableHead>
+                <TableHead>Datos aceptados</TableHead>
                 <TableHead className="w-[140px] text-right">Acciones</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {patients.map((patient, index) => (
+              {filteredPatients.map((patient, index) => (
                 <TableRow
                   key={patient.id}
                   className="duration-300 animate-in fade-in fill-mode-both"
@@ -164,13 +200,20 @@ export default function PatientsPage() {
                 >
                   <TableCell className="font-medium">
                     <Link to={`/pacientes/${patient.id}`} className="hover:underline">
-                      {patient.nombre}
+                      {patient.nombre} {patient.apellido ?? ''}
                     </Link>
                   </TableCell>
                   <TableCell className="text-muted-foreground">{patient.rut}</TableCell>
                   <TableCell className="text-muted-foreground">{patient.email}</TableCell>
                   <TableCell>{dateFormatter.format(new Date(patient.fecha_nacimiento))}</TableCell>
-                  <TableCell>{patient.telefono ?? '—'}</TableCell>
+                  <TableCell>{formatTelefono(patient.telefono)}</TableCell>
+                  <TableCell>
+                    {patient.datos_aceptados_at ? (
+                      <Badge variant="outline">{dateFormatter.format(new Date(patient.datos_aceptados_at))}</Badge>
+                    ) : (
+                      <span className="text-sm text-muted-foreground">—</span>
+                    )}
+                  </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-1">
                       <Button variant="ghost" size="icon-sm" onClick={() => openEdit(patient)}>
