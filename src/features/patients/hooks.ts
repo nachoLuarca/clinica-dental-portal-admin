@@ -15,13 +15,15 @@ import { getPendingPatients, removePendingPatient, subscribeToQueue, syncPending
 import type { DiagnosisPayload, PatientPayload } from './types'
 
 const PATIENTS_KEY = ['patients'] as const
+const patientsSearchKey = (search: string) => ['patients', 'search', search] as const
 const patientKey = (id: number) => ['patients', id] as const
 const diagnosesKey = (patientId: number) => ['patients', patientId, 'diagnoses'] as const
 
-export function usePatients() {
+export function usePatients(search = '') {
   return useQuery({
-    queryKey: PATIENTS_KEY,
-    queryFn: fetchPatients,
+    queryKey: search ? patientsSearchKey(search) : PATIENTS_KEY,
+    queryFn: () => fetchPatients(search || undefined),
+    placeholderData: (previous) => previous,
   })
 }
 
