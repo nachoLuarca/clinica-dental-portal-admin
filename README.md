@@ -1,8 +1,16 @@
 # Portal Clínica Dental (admin/staff)
 
-Portal de gestión (backoffice) para el staff de cada clínica dental, dentro del
-sistema SaaS multi-tenant `clinica-dental`. Consume la API `clinica-dental-api`
+Portal de gestión (backoffice) para el staff de un SaaS multi-clínica dental:
+agenda, pacientes, profesionales, tratamientos, presupuestos, sucursales y
+convenios, con autenticación por tenant. Consume la API `clinica-dental-api`
 vía REST; no implementa lógica de negocio propia.
+
+## Módulos
+
+- Agenda, Profesionales, Especialidades, Tratamientos
+- Pacientes, Presupuestos
+- Sucursales, Convenios, Marca (contenido del portal público de pacientes)
+- Usuarios, Roles (solo admin)
 
 ## Stack
 
@@ -15,7 +23,7 @@ vía REST; no implementa lógica de negocio propia.
 ## Requisitos
 
 - Node.js 20+
-- `clinica-dental-api` corriendo (por defecto en `http://localhost:8080`)
+- `clinica-dental-api` corriendo (por defecto en `http://127.0.0.1:8081`)
 
 ## Desarrollo local
 
@@ -32,7 +40,7 @@ La app corre en **http://localhost:5174** (puerto fijo, configurado en
 Copiar `.env.example` a `.env` y ajustar si es necesario:
 
 ```
-VITE_API_BASE_URL=http://localhost:8080
+VITE_API_BASE_URL=http://127.0.0.1:8081
 ```
 
 ## Notas
