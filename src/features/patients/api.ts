@@ -7,11 +7,9 @@ import type { Diagnosis, DiagnosisPayload, Patient, PatientPayload } from './typ
  * negocio propia: solo mapean a los endpoints de la API, scoped por tenant
  * automáticamente.
  */
-export async function fetchPatients(): Promise<Patient[]> {
-  // El listado del staff no soporta búsqueda por parámetro: se trae todo
-  // (per_page alto) y el filtro por nombre/RUT/correo se hace en el cliente.
+export async function fetchPatients(search?: string): Promise<Patient[]> {
   const { data } = await apiClient.get<PaginatedResponse<Patient>>('/api/staff/patients', {
-    params: { per_page: 200 },
+    params: search ? { search } : undefined,
   })
   return data.data
 }

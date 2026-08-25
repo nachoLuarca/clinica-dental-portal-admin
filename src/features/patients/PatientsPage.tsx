@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { AlertCircle, CloudUpload, Pencil, Plus, RefreshCw, Search, Trash2, Users } from 'lucide-react'
 import { toast } from 'sonner'
@@ -19,15 +19,16 @@ import type { Patient } from './types'
 
 const dateFormatter = new Intl.DateTimeFormat('es-CL', { dateStyle: 'medium' })
 
-function normalizar(value: string): string {
-  return value
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '')
-}
-
 export default function PatientsPage() {
-  const { data: patients, isLoading, isError, error } = usePatients()
+  const [search, setSearch] = useState('')
+  const [debouncedSearch, setDebouncedSearch] = useState('')
+
+  useEffect(() => {
+    const timeout = setTimeout(() => setDebouncedSearch(search.trim()), 300)
+    return () => clearTimeout(timeout)
+  }, [search])
+
+  const { data: patients, isLoading, isError, error } = usePatients(debouncedSearch)
   const deleteMutation = useDeletePatient()
   const pendingPatients = usePendingPatients()
   const isOnline = useOnlineStatus()
@@ -37,18 +38,6 @@ export default function PatientsPage() {
   const [formOpen, setFormOpen] = useState(false)
   const [editing, setEditing] = useState<Patient | null>(null)
   const [deleting, setDeleting] = useState<Patient | null>(null)
-  const [search, setSearch] = useState('')
-
-  const filteredPatients = useMemo(() => {
-    const query = normalizar(search.trim())
-    if (!query) return patients ?? []
-    return (patients ?? []).filter((patient) => {
-      const haystack = normalizar(
-        [patient.nombre, patient.apellido ?? '', patient.rut, patient.email].join(' '),
-      )
-      return haystack.includes(query)
-    })
-  }, [patients, search])
 
   function openCreate() {
     setEditing(null)
@@ -169,15 +158,15 @@ export default function PatientsPage() {
         </p>
       )}
 
-      {!isLoading && !isError && patients && patients.length === 0 && (
+      {!isLoading && !isError && patients && patients.length === 0 && !debouncedSearch && (
         <EmptyState icon={Users} message="Aún no hay pacientes registrados." />
       )}
 
-      {!isLoading && !isError && patients && patients.length > 0 && filteredPatients.length === 0 && (
+      {!isLoading && !isError && patients && patients.length === 0 && debouncedSearch && (
         <EmptyState icon={Search} message="No hay pacientes que coincidan con la búsqueda." />
       )}
 
-      {!isLoading && !isError && filteredPatients.length > 0 && (
+      {!isLoading && !isError && patients && patients.length > 0 && (
         <div className="rounded-lg border duration-300 animate-in fade-in fill-mode-both">
           <Table>
             <TableHeader>
@@ -192,7 +181,7 @@ export default function PatientsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredPatients.map((patient, index) => (
+              {patients.map((patient, index) => (
                 <TableRow
                   key={patient.id}
                   className="duration-300 animate-in fade-in fill-mode-both"
