@@ -17,6 +17,8 @@ import PatientDetailPage from '@/features/patients/PatientDetailPage'
 import TreatmentsPage from '@/features/treatments/TreatmentsPage'
 import BudgetsPage from '@/features/budgets/BudgetsPage'
 import AppointmentsPage from '@/features/appointments/AppointmentsPage'
+import SucursalesPage from '@/features/sucursales/SucursalesPage'
+import ConveniosPage from '@/features/convenios/ConveniosPage'
 import BrandingPage from '@/features/branding/BrandingPage'
 import UsersPage from '@/features/users/UsersPage'
 import RolesPage from '@/features/roles/RolesPage'
@@ -139,6 +141,22 @@ function App() {
               element={
                 <Protected>
                   <AppointmentsPage />
+                </Protected>
+              }
+            />
+            <Route
+              path="/sucursales"
+              element={
+                <Protected>
+                  <SucursalesPage />
+                </Protected>
+              }
+            />
+            <Route
+              path="/convenios"
+              element={
+                <Protected>
+                  <ConveniosPage />
                 </Protected>
               }
             />

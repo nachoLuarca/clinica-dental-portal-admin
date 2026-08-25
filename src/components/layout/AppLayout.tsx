@@ -1,10 +1,12 @@
 import type { ReactNode } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
 import {
+  Building2,
   CalendarDays,
   ClipboardList,
   FileText,
   GraduationCap,
+  HeartHandshake,
   LogOut,
   Palette,
   ShieldCheck,
@@ -25,6 +27,8 @@ const NAV_ITEMS = [
   { to: '/tratamientos', label: 'Tratamientos', icon: ClipboardList },
   { to: '/pacientes', label: 'Pacientes', icon: Users },
   { to: '/presupuestos', label: 'Presupuestos', icon: FileText },
+  { to: '/sucursales', label: 'Sucursales', icon: Building2 },
+  { to: '/convenios', label: 'Convenios', icon: HeartHandshake },
   { to: '/marca', label: 'Marca', icon: Palette },
 ]
 
