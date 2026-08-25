@@ -3,6 +3,7 @@ import { Pencil, Plus, Stethoscope, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { ConfirmDeleteDialog } from '@/components/shared/ConfirmDeleteDialog'
 import { PageHeader } from '@/components/shared/PageHeader'
@@ -77,6 +78,7 @@ export default function ProfessionalsPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>Nombre</TableHead>
+                <TableHead>Sucursal</TableHead>
                 <TableHead>Especialidades</TableHead>
                 <TableHead>Horarios</TableHead>
                 <TableHead>Correo</TableHead>
@@ -92,8 +94,18 @@ export default function ProfessionalsPage() {
                   style={{ animationDelay: `${Math.min(index, 10) * 30}ms` }}
                 >
                   <TableCell className="font-medium">
-                    {professional.nombre} {professional.apellido}
+                    <div className="flex items-center gap-2">
+                      <Avatar size="sm">
+                        <AvatarImage src={professional.foto_url ?? undefined} alt="" />
+                        <AvatarFallback>
+                          {professional.nombre.charAt(0)}
+                          {professional.apellido.charAt(0)}
+                        </AvatarFallback>
+                      </Avatar>
+                      {professional.nombre} {professional.apellido}
+                    </div>
                   </TableCell>
+                  <TableCell className="text-muted-foreground">{professional.sucursal?.nombre ?? '—'}</TableCell>
                   <TableCell>
                     {professional.especialidades && professional.especialidades.length > 0 ? (
                       <div className="flex flex-wrap gap-1">

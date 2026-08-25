@@ -1,8 +1,8 @@
-import { useEffect } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useFieldArray, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Loader2, Plus, Trash2 } from 'lucide-react'
+import { Image, Loader2, Plus, Trash2 } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/dialog'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -20,8 +21,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { toast } from 'sonner'
 import { getApiErrorMessage } from '@/lib/api-error'
 import { useEspecialidades } from '@/features/especialidades/hooks'
+import { useSucursales } from '@/features/sucursales/hooks'
 import { useCreateProfessional, useUpdateProfessional } from './hooks'
 import type { Professional } from './types'
+
+const MAX_FOTO_BYTES = 2 * 1024 * 1024
+
+/** Sentinel para "sin sucursal asignada": Radix Select no admite value="". */
+const SIN_SUCURSAL = '__sin_sucursal__'
 
 const DIAS_SEMANA = [
   { value: 0, label: 'Domingo' },
@@ -51,6 +58,9 @@ const professionalSchema = z.object({
   activo: z.boolean(),
   especialidades: z.array(z.number()),
   horarios: z.array(horarioSchema),
+  bio: z.string().trim().optional(),
+  matricula: z.string().trim().optional(),
+  sucursal_id: z.string(),
 })
 
 type ProfessionalFormValues = z.infer<typeof professionalSchema>
@@ -64,9 +74,13 @@ interface ProfessionalFormDialogProps {
 export function ProfessionalFormDialog({ open, onOpenChange, professional }: ProfessionalFormDialogProps) {
   const isEditing = !!professional
   const { data: especialidadesCatalogo } = useEspecialidades()
+  const { data: sucursales } = useSucursales()
   const createMutation = useCreateProfessional()
   const updateMutation = useUpdateProfessional()
   const isSubmitting = createMutation.isPending || updateMutation.isPending
+
+  const [fotoFile, setFotoFile] = useState<File | null>(null)
+  const [fotoError, setFotoError] = useState<string | null>(null)
 
   const form = useForm<ProfessionalFormValues>({
     resolver: zodResolver(professionalSchema),
@@ -77,6 +91,9 @@ export function ProfessionalFormDialog({ open, onOpenChange, professional }: Pro
       activo: true,
       especialidades: [],
       horarios: [],
+      bio: '',
+      matricula: '',
+      sucursal_id: SIN_SUCURSAL,
     },
   })
 
@@ -84,6 +101,8 @@ export function ProfessionalFormDialog({ open, onOpenChange, professional }: Pro
 
   useEffect(() => {
     if (open) {
+      setFotoFile(null)
+      setFotoError(null)
       form.reset(
         professional
           ? {
@@ -98,6 +117,9 @@ export function ProfessionalFormDialog({ open, onOpenChange, professional }: Pro
                   hora_inicio: s.hora_inicio.slice(0, 5),
                   hora_fin: s.hora_fin.slice(0, 5),
                 })) ?? [],
+              bio: professional.bio ?? '',
+              matricula: professional.matricula ?? '',
+              sucursal_id: professional.sucursal_id ? String(professional.sucursal_id) : SIN_SUCURSAL,
             }
           : {
               nombre: '',
@@ -106,18 +128,58 @@ export function ProfessionalFormDialog({ open, onOpenChange, professional }: Pro
               activo: true,
               especialidades: [],
               horarios: [],
+              bio: '',
+              matricula: '',
+              sucursal_id: SIN_SUCURSAL,
             },
       )
     }
   }, [open, professional, form])
 
+  const fotoPreview = useMemo(
+    () => (fotoFile ? URL.createObjectURL(fotoFile) : (professional?.foto_url ?? null)),
+    [fotoFile, professional],
+  )
+
+  useEffect(() => {
+    return () => {
+      if (fotoFile) URL.revokeObjectURL(fotoPreview!)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fotoFile])
+
+  function handleFotoChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0] ?? null
+    setFotoError(null)
+    if (file && file.size > MAX_FOTO_BYTES) {
+      setFotoError('La foto no puede superar los 2MB.')
+      setFotoFile(null)
+      event.target.value = ''
+      return
+    }
+    setFotoFile(file)
+  }
+
   async function onSubmit(values: ProfessionalFormValues) {
     try {
+      const payload = {
+        nombre: values.nombre,
+        apellido: values.apellido,
+        email: values.email,
+        activo: values.activo,
+        especialidades: values.especialidades,
+        horarios: values.horarios,
+        bio: values.bio || undefined,
+        matricula: values.matricula || undefined,
+        sucursal_id: values.sucursal_id === SIN_SUCURSAL ? null : Number(values.sucursal_id),
+        foto: fotoFile ?? undefined,
+      }
+
       if (isEditing && professional) {
-        await updateMutation.mutateAsync({ id: professional.id, payload: values })
+        await updateMutation.mutateAsync({ id: professional.id, payload })
         toast.success('Profesional actualizado correctamente.')
       } else {
-        await createMutation.mutateAsync(values)
+        await createMutation.mutateAsync(payload)
         toast.success('Profesional creado correctamente.')
       }
       onOpenChange(false)
@@ -167,6 +229,29 @@ export function ProfessionalFormDialog({ open, onOpenChange, professional }: Pro
                   </FormItem>
                 )}
               />
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="professional-foto">Foto</Label>
+              <div className="flex items-center gap-3">
+                <span className="flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-dashed text-muted-foreground">
+                  {fotoPreview ? (
+                    <img src={fotoPreview} alt="Foto del profesional" className="size-full object-cover" />
+                  ) : (
+                    <Image className="size-6" strokeWidth={1.5} />
+                  )}
+                </span>
+                <div className="flex flex-col gap-1">
+                  <Input
+                    id="professional-foto"
+                    type="file"
+                    accept="image/png,image/jpeg,image/svg+xml,image/webp"
+                    onChange={handleFotoChange}
+                  />
+                  <p className="text-xs text-muted-foreground">JPG, PNG, SVG o WEBP. Máximo 2MB.</p>
+                  {fotoError && <p className="text-xs text-destructive">{fotoError}</p>}
+                </div>
+              </div>
             </div>
 
             <FormField
@@ -297,6 +382,61 @@ export function ProfessionalFormDialog({ open, onOpenChange, professional }: Pro
                   <FormLabel>Correo electrónico</FormLabel>
                   <FormControl>
                     <Input type="email" placeholder="profesional@clinica.cl" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <div className="grid grid-cols-2 gap-3">
+              <FormField
+                control={form.control}
+                name="matricula"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Matrícula</FormLabel>
+                    <FormControl>
+                      <Input placeholder="12345-6" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="sucursal_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Sucursal</FormLabel>
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <FormControl>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Sin sucursal asignada" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value={SIN_SUCURSAL}>Sin sucursal asignada</SelectItem>
+                        {(sucursales ?? []).map((sucursal) => (
+                          <SelectItem key={sucursal.id} value={String(sucursal.id)}>
+                            {sucursal.nombre}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <FormField
+              control={form.control}
+              name="bio"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Bio</FormLabel>
+                  <FormControl>
+                    <Textarea placeholder="Reseña breve para la ficha pública (opcional)" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
