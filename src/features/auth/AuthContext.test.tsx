@@ -11,7 +11,8 @@ const { loginStaff, fetchCurrentStaff, logoutStaff } = vi.hoisted(() => ({
 
 vi.mock('./api', () => ({ loginStaff, fetchCurrentStaff, logoutStaff }))
 
-const { AuthProvider, useAuth } = await import('./AuthContext')
+const { AuthProvider } = await import('./AuthContext')
+const { useAuth } = await import('./use-auth')
 
 const staffUser: StaffUser = {
   id: 1,
