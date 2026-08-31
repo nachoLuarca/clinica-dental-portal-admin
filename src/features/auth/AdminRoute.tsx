@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 import { Navigate } from 'react-router-dom'
 import { Loader2 } from 'lucide-react'
-import { useAuth } from './AuthContext'
+import { useAuth } from './use-auth'
 
 /**
  * Protege rutas exclusivas de administrador (gestión de usuarios/roles).

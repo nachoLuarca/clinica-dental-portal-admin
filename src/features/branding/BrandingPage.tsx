@@ -12,7 +12,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Skeleton } from '@/components/ui/skeleton'
 import { PageHeader } from '@/components/shared/PageHeader'
-import { useAuth } from '@/features/auth/AuthContext'
+import { useAuth } from '@/features/auth/use-auth'
 import { getApiErrorMessage, isForbiddenError } from '@/lib/api-error'
 import { useTenant, useUpdateTenant } from './hooks'
 
