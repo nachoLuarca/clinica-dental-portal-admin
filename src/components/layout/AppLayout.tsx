@@ -18,7 +18,7 @@ import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { BrandMark } from '@/components/shared/BrandMark'
 import { cn } from '@/lib/utils'
-import { useAuth } from '@/features/auth/AuthContext'
+import { useAuth } from '@/features/auth/use-auth'
 
 const NAV_ITEMS = [
   { to: '/agenda', label: 'Agenda', icon: CalendarDays },

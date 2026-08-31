@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { BrandMark } from '@/components/shared/BrandMark'
-import { useAuth } from '@/features/auth/AuthContext'
+import { useAuth } from '@/features/auth/use-auth'
 import { getApiErrorMessage } from '@/lib/api-error'
 
 interface LocationState {

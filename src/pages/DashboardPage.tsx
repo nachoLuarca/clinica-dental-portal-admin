@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 import { CalendarDays, ClipboardList, FileText, Stethoscope, Users } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { useAuth } from '@/features/auth/AuthContext'
+import { useAuth } from '@/features/auth/use-auth'
 import type { PageAccent } from '@/components/shared/PageHeader'
 import { cn } from '@/lib/utils'
 
